@@ -45,7 +45,7 @@ import {REVLoanSource} from "./structs/REVLoanSource.sol";
 /// cannot be
 /// recouped.
 /// @dev The loaned amounts include the fees taken, meaning the amount paid back is the amount borrowed plus the fees.
-contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
+contract REVLoans1_1 is ERC721, ERC2771Context, Ownable, IREVLoans {
     // A library that parses the packed ruleset metadata into a friendlier format.
     using JBRulesetMetadataResolver for JBRuleset;
 
@@ -823,23 +823,25 @@ contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
         }
 
         // Get the amount of additional fee to take for REV.
-        uint256 revFeeAmount =
+        uint256 revFeeAmount = address(feeTerminal) == address(0) ? 0 :
             JBFees.feeAmountFrom({amountBeforeFee: addedBorrowAmount, feePercent: REV_PREPAID_FEE_PERCENT});
 
         // Increase the allowance for the beneficiary.
-        uint256 payValue = _beforeTransferTo({to: address(feeTerminal), token: loan.source.token, amount: revFeeAmount});
+        uint256 payValue = revFeeAmount == 0 ? 0 : _beforeTransferTo({to: address(feeTerminal), token: loan.source.token, amount: revFeeAmount});
 
-        // Pay the fee. Send the REV to the msg.sender.
-        // slither-disable-next-line arbitrary-send-eth,unused-return
-        try feeTerminal.pay{value: payValue}({
-            projectId: REV_ID,
-            token: loan.source.token,
-            amount: revFeeAmount,
-            beneficiary: beneficiary,
-            minReturnedTokens: 0,
-            memo: "Fee from loan",
-            metadata: bytes(abi.encodePacked(revnetId))
-        }) {} catch (bytes memory) {}
+        if (payValue > 0) {
+            // Pay the fee. Send the REV to the msg.sender.
+            // slither-disable-next-line arbitrary-send-eth,unused-return
+            try feeTerminal.pay{value: payValue}({
+                projectId: REV_ID,
+                token: loan.source.token,
+                amount: revFeeAmount,
+                beneficiary: beneficiary,
+                minReturnedTokens: 0,
+                memo: "Fee from loan",
+                metadata: bytes(abi.encodePacked(revnetId))
+            }) {} catch (bytes memory) {}
+        }
 
         // Transfer the remaining balance to the borrower.
         _transferFrom({

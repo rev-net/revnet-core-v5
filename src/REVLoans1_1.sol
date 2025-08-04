@@ -823,11 +823,14 @@ contract REVLoans1_1 is ERC721, ERC2771Context, Ownable, IREVLoans {
         }
 
         // Get the amount of additional fee to take for REV.
-        uint256 revFeeAmount = address(feeTerminal) == address(0) ? 0 :
-            JBFees.feeAmountFrom({amountBeforeFee: addedBorrowAmount, feePercent: REV_PREPAID_FEE_PERCENT});
+        uint256 revFeeAmount = address(feeTerminal) == address(0)
+            ? 0
+            : JBFees.feeAmountFrom({amountBeforeFee: addedBorrowAmount, feePercent: REV_PREPAID_FEE_PERCENT});
 
         // Increase the allowance for the beneficiary.
-        uint256 payValue = revFeeAmount == 0 ? 0 : _beforeTransferTo({to: address(feeTerminal), token: loan.source.token, amount: revFeeAmount});
+        uint256 payValue = revFeeAmount == 0
+            ? 0
+            : _beforeTransferTo({to: address(feeTerminal), token: loan.source.token, amount: revFeeAmount});
 
         if (payValue > 0) {
             // Pay the fee. Send the REV to the msg.sender.

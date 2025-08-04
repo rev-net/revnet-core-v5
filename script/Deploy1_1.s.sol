@@ -22,7 +22,6 @@ contract Deploy1_1Script is Script, Sphinx {
 
     address LOANS_OWNER;
     address OPERATOR;
-    uint256 TIME_UNTIL_START = 3 days;
     address TRUSTED_FORWARDER;
     IPermit2 PERMIT2;
 

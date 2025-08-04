@@ -10,7 +10,9 @@
         "test": "forge test",
         "coverage:integration": "forge coverage --match-path \"./src/*.sol\" --report lcov --report summary",
         "deploy:mainnets": "source ./.env && export START_TIME=$(date +%s) && npx sphinx propose ./script/Deploy.s.sol --networks mainnets",
+        "deploy:mainnets:1_1": "source ./.env && npx sphinx propose ./script/Deploy1_1.s.sol --networks mainnets",
         "deploy:testnets": "source ./.env && export START_TIME=$(date +%s) && npx sphinx propose ./script/Deploy.s.sol --networks testnets",
+        "deploy:testnets:1_1": "source ./.env && npx sphinx propose ./script/Deploy1_1.s.sol --networks testnets",
         "artifacts": "source ./.env && npx sphinx artifacts --org-id 'ea165b21-7cdc-4d7b-be59-ecdd4c26bee4' --project-name 'revnet-core'"
     },
     "dependencies": {

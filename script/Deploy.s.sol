@@ -57,7 +57,7 @@ contract DeployScript is Script, Sphinx {
     uint32 PREMINT_CHAIN_ID = 1;
     string NAME = "Revnet";
     string SYMBOL = "REV";
-    string PROJECT_URI = "ipfs://QmSiJhANtkySxt6eBDJS3E5RNJx3QXRNwz6XijdmEXw7JC";
+    string PROJECT_URI = "ipfs://todo";
     uint32 NATIVE_CURRENCY = uint32(uint160(JBConstants.NATIVE_TOKEN));
     uint32 ETH_CURRENCY = JBCurrencyIds.ETH;
     uint8 DECIMALS = 18;
@@ -68,9 +68,13 @@ contract DeployScript is Script, Sphinx {
     bytes32 REVLOANS_SALT = "_REV_LOANS_SALT_";
     address LOANS_OWNER;
     address OPERATOR;
-    uint256 TIME_UNTIL_START = 3 days;
     address TRUSTED_FORWARDER;
     IPermit2 PERMIT2;
+    uint256 REV_START_TIME = 1739831543;
+    uint256 REV_MAINNET_AUTO_ISSUANCE_ = 957932309500316260835082;
+    uint256 REV_BASE_AUTO_ISSUANCE_ = 1000000000000000000000000;
+    uint256 REV_OP_AUTO_ISSUANCE_ = 1000000000000000000000000;
+    uint256 REV_ARB_AUTO_ISSUANCE_ = 1000000000000000000000000;
 
     function configureSphinx() public override {
         // TODO: Update to contain revnet devs.
@@ -165,15 +169,30 @@ contract DeployScript is Script, Sphinx {
         });
 
         {
-            REVAutoIssuance[] memory issuanceConfs = new REVAutoIssuance[](1);
+            REVAutoIssuance[] memory issuanceConfs = new REVAutoIssuance[](4);
             issuanceConfs[0] = REVAutoIssuance({
-                chainId: PREMINT_CHAIN_ID,
-                count: uint104(775_000 * DECIMAL_MULTIPLIER),
+                chainId: 1,
+                count: REV_MAINNET_AUTO_ISSUANCE_,
+                beneficiary: OPERATOR
+            });
+            issuanceConfs[1] = REVAutoIssuance({
+                chainId: 8453,
+                count: REV_BASE_AUTO_ISSUANCE_,
+                beneficiary: OPERATOR
+            });
+            issuanceConfs[2] = REVAutoIssuance({
+                chainId: 10,
+                count: REV_OP_AUTO_ISSUANCE_,
+                beneficiary: OPERATOR
+            });
+            issuanceConfs[3] = REVAutoIssuance({
+                chainId: 42161,
+                count: REV_ARB_AUTO_ISSUANCE_,
                 beneficiary: OPERATOR
             });
 
             stageConfigurations[0] = REVStageConfig({
-                startsAtOrAfter: uint40(block.timestamp + TIME_UNTIL_START),
+                startsAtOrAfter: REV_START_TIME, 
                 autoIssuances: issuanceConfs,
                 splitPercent: 3800, // 38%
                 splits: splits,
@@ -241,7 +260,7 @@ contract DeployScript is Script, Sphinx {
             token: JBConstants.NATIVE_TOKEN,
             fee: 10_000,
             twapWindow: 2 days,
-            twapSlippageTolerance: 9000
+            twapSlippageTolerance: 1000
         });
 
         REVBuybackHookConfig memory buybackHookConfiguration =

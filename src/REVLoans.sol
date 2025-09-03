@@ -373,36 +373,30 @@ contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
     /// @notice Determines the source fee amount for a loan being paid off a certain amount.
     /// @param loan The loan having its source fee amount determined.
     /// @param amount The amount being paid off.
-    /// @return sourceFeeAmount The source fee amount for the loan.
-    function _determineSourceFeeAmount(
-        REVLoan memory loan,
-        uint256 amount
-    )
-        internal
-        view
-        returns (uint256 sourceFeeAmount)
-    {
+    /// @return The source fee amount for the loan.
+    function _determineSourceFeeAmount(REVLoan memory loan, uint256 amount) internal view returns (uint256) {
         // Keep a reference to the time since the loan was created.
         uint256 timeSinceLoanCreated = block.timestamp - loan.createdAt;
 
         // If the loan period has passed the prepaid time frame, take a fee.
-        if (timeSinceLoanCreated > loan.prepaidDuration) {
-            // If the loan period has passed the liqidation time frame, do not allow loan management.
-            if (timeSinceLoanCreated > LOAN_LIQUIDATION_DURATION) {
-                revert REVLoans_LoanExpired(timeSinceLoanCreated, LOAN_LIQUIDATION_DURATION);
-            }
+        if (timeSinceLoanCreated <= loan.prepaidDuration) return 0;
 
-            // Get a reference to the amount prepaid for the full loan.
-            uint256 prepaid = JBFees.feeAmountFrom({amountBeforeFee: loan.amount, feePercent: loan.prepaidFeePercent});
-
-            uint256 fullSourceFeeAmount = JBFees.feeAmountFrom({
-                amountBeforeFee: loan.amount - prepaid,
-                feePercent: mulDiv(timeSinceLoanCreated, JBConstants.MAX_FEE, LOAN_LIQUIDATION_DURATION)
-            });
-
-            // Calculate the source fee amount for the amount being paid off.
-            sourceFeeAmount = mulDiv(fullSourceFeeAmount, amount, loan.amount);
+        // If the loan period has passed the liqidation time frame, do not allow loan management.
+        if (timeSinceLoanCreated > LOAN_LIQUIDATION_DURATION) {
+            revert REVLoans_LoanExpired(timeSinceLoanCreated, LOAN_LIQUIDATION_DURATION);
         }
+
+        // Get a reference to the amount prepaid for the full loan.
+        uint256 prepaid = JBFees.feeAmountFrom({amountBeforeFee: loan.amount, feePercent: loan.prepaidFeePercent});
+
+        uint256 fullSourceFeeAmount = JBFees.feeAmountFrom({
+            amountBeforeFee: loan.amount - prepaid,
+            feePercent: (timeSinceLoanCreated - loan.prepaidDuration) * JBConstants.MAX_FEE
+                / (LOAN_LIQUIDATION_DURATION - loan.prepaidDuration)
+        });
+
+        // Calculate the source fee amount for the amount being paid off.
+        return mulDiv(fullSourceFeeAmount, amount, loan.amount);
     }
 
     /// @notice Generate a ID for a loan given a revnet ID and a loan number within that revnet.

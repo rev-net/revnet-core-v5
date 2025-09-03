@@ -400,11 +400,8 @@ contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
                 feePercent: mulDiv(timeSinceLoanCreated, JBConstants.MAX_FEE, LOAN_LIQUIDATION_DURATION)
             });
 
-            // Get a reference to the amount that would have to be paid down to make the loan fully paid.
-            uint256 amountInFull = loan.amount + fullSourceFeeAmount;
-
             // Calculate the source fee amount for the amount being paid off.
-            sourceFeeAmount = mulDiv(fullSourceFeeAmount, amount, amountInFull);
+            sourceFeeAmount = mulDiv(fullSourceFeeAmount, amount, loan.amount);
         }
     }
 
@@ -665,7 +662,7 @@ contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
     /// @param loanId The ID of the loan being adjusted.
     /// @param maxRepayBorrowAmount The maximum amount being paid off, denominated in the token of the source's
     /// accounting context.
-    /// @param collateralCountToReturn The amount of collateral to return being returned from the loan.
+    /// @param collateralCountToReturn The amount of collateral being returned from the loan.
     /// @param beneficiary The address receiving the returned collateral and any tokens resulting from paying fees.
     /// @param allowance An allowance to faciliate permit2 interactions.
     /// @return paidOffLoanId The ID of the loan after it's been paid off.
@@ -781,14 +778,12 @@ contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
     /// @param addedBorrowAmount The amount being added to the loan, denominated in the token of the source's
     /// accounting context.
     /// @param sourceFeeAmount The amount of the fee being taken from the revnet acting as the source of the loan.
-    /// @param feeTerminal The terminal that the fee will be paid to.
     /// @param beneficiary The address receiving the returned collateral and any tokens resulting from paying fees.
     function _addTo(
         REVLoan memory loan,
         uint256 revnetId,
         uint256 addedBorrowAmount,
         uint256 sourceFeeAmount,
-        IJBTerminal feeTerminal,
         address payable beneficiary
     )
         internal
@@ -822,6 +817,9 @@ contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
             });
         }
 
+        // Keep a reference to the fee terminal.
+        IJBTerminal feeTerminal = DIRECTORY.primaryTerminalOf(REV_ID, loan.source.token);
+
         // Get the amount of additional fee to take for REV.
         uint256 revFeeAmount = address(feeTerminal) == address(0)
             ? 0
@@ -832,7 +830,7 @@ contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
             ? 0
             : _beforeTransferTo({to: address(feeTerminal), token: loan.source.token, amount: revFeeAmount});
 
-        if (payValue > 0) {
+        if (revFeeAmount > 0) {
             // Pay the fee. Send the REV to the msg.sender.
             // slither-disable-next-line arbitrary-send-eth,unused-return
             try feeTerminal.pay{value: payValue}({
@@ -876,16 +874,12 @@ contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
     {
         // Add to the loan if needed...
         if (newBorrowAmount > loan.amount) {
-            // Keep a reference to the fee terminal.
-            IJBTerminal feeTerminal = DIRECTORY.primaryTerminalOf(REV_ID, loan.source.token);
-
             // Add the new amount to the loan.
             _addTo({
                 loan: loan,
                 revnetId: revnetId,
                 addedBorrowAmount: newBorrowAmount - loan.amount,
                 sourceFeeAmount: sourceFeeAmount,
-                feeTerminal: feeTerminal,
                 beneficiary: beneficiary
             });
             // ... or pay off the loan if needed.

@@ -391,8 +391,11 @@ contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
 
         uint256 fullSourceFeeAmount = JBFees.feeAmountFrom({
             amountBeforeFee: loan.amount - prepaid,
-            feePercent: (timeSinceLoanCreated - loan.prepaidDuration) * JBConstants.MAX_FEE
-                / (LOAN_LIQUIDATION_DURATION - loan.prepaidDuration)
+            feePercent: mulDiv(
+                timeSinceLoanCreated - loan.prepaidDuration,
+                JBConstants.MAX_FEE,
+                LOAN_LIQUIDATION_DURATION - loan.prepaidDuration
+            )
         });
 
         // Calculate the source fee amount for the amount being paid off.
@@ -820,7 +823,6 @@ contract REVLoans is ERC721, ERC2771Context, Ownable, IREVLoans {
             : JBFees.feeAmountFrom({amountBeforeFee: addedBorrowAmount, feePercent: REV_PREPAID_FEE_PERCENT});
 
         if (revFeeAmount > 0) {
-
             // Increase the allowance for the beneficiary.
             uint256 payValue = revFeeAmount == 0
                 ? 0

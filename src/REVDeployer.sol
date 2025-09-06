@@ -337,8 +337,9 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
     /// @param addr The address to check the mint permission of.
     /// @return flag A flag indicating whether the address has permission to mint the revnet's tokens on-demand.
     function hasMintPermissionFor(uint256 revnetId, address addr) external view override returns (bool) {
+        IJBBuybackHook buybackHook = buybackHookOf[revnetId];
         // The buyback hook, loans contract, and suckers are allowed to mint the revnet's tokens.
-        return addr == address(buybackHookOf[revnetId]) || addr == loansOf[revnetId]
+        return addr == address(buybackHook) || buybackHook.hasMintPermissionFor(revnetId, addr) || addr == loansOf[revnetId]
             || _isSuckerOf({revnetId: revnetId, addr: addr});
     }
 

@@ -2,35 +2,35 @@
 pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
-import /* {*} from */ "@bananapus/core/test/helpers/TestBaseWorkflow.sol";
-import /* {*} from "@bananapus/721-hook/src/JB721TiersHookDeployer.sol";
+import /* {*} from */ "@bananapus/core-v5test/helpers/TestBaseWorkflow.sol";
+import /* {*} from "@bananapus/721-hook-v5/src/JB721TiersHookDeployer.sol";
     import /* {*} from */ "./../src/REVDeployer.sol";
-import "@croptop/core/src/CTPublisher.sol";
+import "@croptop/core-v5/src/CTPublisher.sol";
 
-import "@bananapus/core/script/helpers/CoreDeploymentLib.sol";
-import "@bananapus/721-hook/script/helpers/Hook721DeploymentLib.sol";
-import "@bananapus/suckers/script/helpers/SuckerDeploymentLib.sol";
-import "@croptop/core/script/helpers/CroptopDeploymentLib.sol";
-import "@bananapus/swap-terminal/script/helpers/SwapTerminalDeploymentLib.sol";
-import "@bananapus/buyback-hook/script/helpers/BuybackDeploymentLib.sol";
+import "@bananapus/core-v5script/helpers/CoreDeploymentLib.sol";
+import "@bananapus/721-hook-v5/script/helpers/Hook721DeploymentLib.sol";
+import "@bananapus/suckers-v5/script/helpers/SuckerDeploymentLib.sol";
+import "@croptop/core-v5/script/helpers/CroptopDeploymentLib.sol";
+import "@bananapus/swap-terminal-v5/script/helpers/SwapTerminalDeploymentLib.sol";
+import "@bananapus/buyback-hook-v5/script/helpers/BuybackDeploymentLib.sol";
 
-import {JBConstants} from "@bananapus/core/src/libraries/JBConstants.sol";
-import {JBAccountingContext} from "@bananapus/core/src/structs/JBAccountingContext.sol";
+import {JBConstants} from "@bananapus/core-v5src/libraries/JBConstants.sol";
+import {JBAccountingContext} from "@bananapus/core-v5src/structs/JBAccountingContext.sol";
 import {REVLoans} from "../src/REVLoans.sol";
 import {REVStageConfig, REVAutoIssuance} from "../src/structs/REVStageConfig.sol";
 import {REVLoanSource} from "../src/structs/REVLoanSource.sol";
 import {REVDescription} from "../src/structs/REVDescription.sol";
 import {REVBuybackPoolConfig} from "../src/structs/REVBuybackPoolConfig.sol";
 import {IREVLoans} from "./../src/interfaces/IREVLoans.sol";
-import {JBSuckerDeployerConfig} from "@bananapus/suckers/src/structs/JBSuckerDeployerConfig.sol";
-import {JBSuckerRegistry} from "@bananapus/suckers/src/JBSuckerRegistry.sol";
-import {JBTokenMapping} from "@bananapus/suckers/src/structs/JBTokenMapping.sol";
-import {JB721TiersHookDeployer} from "@bananapus/721-hook/src/JB721TiersHookDeployer.sol";
-import {JBArbitrumSuckerDeployer} from "@bananapus/suckers/src/deployers/JBArbitrumSuckerDeployer.sol";
-import {JBArbitrumSucker, JBLayer, IArbGatewayRouter, IInbox} from "@bananapus/suckers/src/JBArbitrumSucker.sol";
-import {JBAddToBalanceMode} from "@bananapus/suckers/src/enums/JBAddToBalanceMode.sol";
-import {JB721TiersHook} from "@bananapus/721-hook/src/JB721TiersHook.sol";
-import {JB721TiersHookStore} from "@bananapus/721-hook/src/JB721TiersHookStore.sol";
+import {JBSuckerDeployerConfig} from "@bananapus/suckers-v5/src/structs/JBSuckerDeployerConfig.sol";
+import {JBSuckerRegistry} from "@bananapus/suckers-v5/src/JBSuckerRegistry.sol";
+import {JBTokenMapping} from "@bananapus/suckers-v5/src/structs/JBTokenMapping.sol";
+import {JB721TiersHookDeployer} from "@bananapus/721-hook-v5/src/JB721TiersHookDeployer.sol";
+import {JBArbitrumSuckerDeployer} from "@bananapus/suckers-v5/src/deployers/JBArbitrumSuckerDeployer.sol";
+import {JBArbitrumSucker, JBLayer, IArbGatewayRouter, IInbox} from "@bananapus/suckers-v5/src/JBArbitrumSucker.sol";
+import {JBAddToBalanceMode} from "@bananapus/suckers-v5/src/enums/JBAddToBalanceMode.sol";
+import {JB721TiersHook} from "@bananapus/721-hook-v5/src/JB721TiersHook.sol";
+import {JB721TiersHookStore} from "@bananapus/721-hook-v5/src/JB721TiersHookStore.sol";
 import {JBAddressRegistry} from "@bananapus/address-registry/src/JBAddressRegistry.sol";
 import {IJBAddressRegistry} from "@bananapus/address-registry/src/interfaces/IJBAddressRegistry.sol";
 

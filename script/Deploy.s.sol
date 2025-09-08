@@ -57,7 +57,7 @@ contract DeployScript is Script, Sphinx {
     uint32 PREMINT_CHAIN_ID = 1;
     string NAME = "Revnet";
     string SYMBOL = "REV";
-    string PROJECT_URI = "ipfs://todo";
+    string PROJECT_URI = "ipfs://QmcCBD5fM927LjkLDSJWtNEU9FohcbiPSfqtGRHXFHzJ4W";
     uint32 NATIVE_CURRENCY = uint32(uint160(JBConstants.NATIVE_TOKEN));
     uint32 ETH_CURRENCY = JBCurrencyIds.ETH;
     uint8 DECIMALS = 18;

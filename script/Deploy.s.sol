@@ -1,26 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import "@bananapus/721-hook/script/helpers/Hook721DeploymentLib.sol";
-import "@bananapus/buyback-hook/script/helpers/BuybackDeploymentLib.sol";
-import "@bananapus/core/script/helpers/CoreDeploymentLib.sol";
-import "@bananapus/suckers/script/helpers/SuckerDeploymentLib.sol";
-import "@bananapus/swap-terminal/script/helpers/SwapTerminalDeploymentLib.sol";
-import "@croptop/core/script/helpers/CroptopDeploymentLib.sol";
+import "@bananapus/721-hook-v5/script/helpers/Hook721DeploymentLib.sol";
+import "@bananapus/buyback-hook-v5/script/helpers/BuybackDeploymentLib.sol";
+import "@bananapus/core-v5/script/helpers/CoreDeploymentLib.sol";
+import "@bananapus/suckers-v5/script/helpers/SuckerDeploymentLib.sol";
+import "@bananapus/swap-terminal-v5/script/helpers/SwapTerminalDeploymentLib.sol";
+import "@croptop/core-v5/script/helpers/CroptopDeploymentLib.sol";
 
 import {Sphinx} from "@sphinx-labs/contracts/SphinxPlugin.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {JBConstants} from "@bananapus/core/src/libraries/JBConstants.sol";
-import {JBCurrencyIds} from "@bananapus/core/src/libraries/JBCurrencyIds.sol";
-import {JBAccountingContext} from "@bananapus/core/src/structs/JBAccountingContext.sol";
-import {JBTerminalConfig} from "@bananapus/core/src/structs/JBTerminalConfig.sol";
-import {JBSuckerDeployerConfig} from "@bananapus/suckers/src/structs/JBSuckerDeployerConfig.sol";
-import {JBTokenMapping} from "@bananapus/suckers/src/structs/JBTokenMapping.sol";
+import {JBConstants} from "@bananapus/core-v5/src/libraries/JBConstants.sol";
+import {JBCurrencyIds} from "@bananapus/core-v5/src/libraries/JBCurrencyIds.sol";
+import {JBAccountingContext} from "@bananapus/core-v5/src/structs/JBAccountingContext.sol";
+import {JBTerminalConfig} from "@bananapus/core-v5/src/structs/JBTerminalConfig.sol";
+import {JBSuckerDeployerConfig} from "@bananapus/suckers-v5/src/structs/JBSuckerDeployerConfig.sol";
+import {JBTokenMapping} from "@bananapus/suckers-v5/src/structs/JBTokenMapping.sol";
 import {IPermit2} from "@uniswap/permit2/src/interfaces/IPermit2.sol";
-import {IJBSplitHook} from "@bananapus/core/src/interfaces/IJBSplitHook.sol";
-import {IJBTerminal} from "@bananapus/core/src/interfaces/IJBTerminal.sol";
-import {JBSplit} from "@bananapus/core/src/structs/JBSplit.sol";
+import {IJBSplitHook} from "@bananapus/core-v5/src/interfaces/IJBSplitHook.sol";
+import {IJBTerminal} from "@bananapus/core-v5/src/interfaces/IJBTerminal.sol";
+import {JBSplit} from "@bananapus/core-v5/src/structs/JBSplit.sol";
 
 import {REVDeployer} from "./../src/REVDeployer.sol";
 import {REVAutoIssuance} from "../src/structs/REVAutoIssuance.sol";
@@ -92,27 +92,27 @@ contract DeployScript is Script, Sphinx {
         // Get the deployment addresses for the nana CORE for this chain.
         // We want to do this outside of the `sphinx` modifier.
         core = CoreDeploymentLib.getDeployment(
-            vm.envOr("NANA_CORE_DEPLOYMENT_PATH", string("node_modules/@bananapus/core/deployments/"))
+            vm.envOr("NANA_CORE_DEPLOYMENT_PATH", string("node_modules/@bananapus/core-v5/deployments/"))
         );
         // Get the deployment addresses for the suckers contracts for this chain.
         suckers = SuckerDeploymentLib.getDeployment(
-            vm.envOr("NANA_SUCKERS_DEPLOYMENT_PATH", string("node_modules/@bananapus/suckers/deployments/"))
+            vm.envOr("NANA_SUCKERS_DEPLOYMENT_PATH", string("node_modules/@bananapus/suckers-v5/deployments/"))
         );
         // Get the deployment addresses for the 721 hook contracts for this chain.
         croptop = CroptopDeploymentLib.getDeployment(
-            vm.envOr("CROPTOP_CORE_DEPLOYMENT_PATH", string("node_modules/@croptop/core/deployments/"))
+            vm.envOr("CROPTOP_CORE_DEPLOYMENT_PATH", string("node_modules/@croptop/core-v5/deployments/"))
         );
         // Get the deployment addresses for the 721 hook contracts for this chain.
         hook = Hook721DeploymentLib.getDeployment(
-            vm.envOr("NANA_721_DEPLOYMENT_PATH", string("node_modules/@bananapus/721-hook/deployments/"))
+            vm.envOr("NANA_721_DEPLOYMENT_PATH", string("node_modules/@bananapus/721-hook-v5/deployments/"))
         );
         // Get the deployment addresses for the 721 hook contracts for this chain.
         swapTerminal = SwapTerminalDeploymentLib.getDeployment(
-            vm.envOr("NANA_SWAP_TERMINAL_DEPLOYMENT_PATH", string("node_modules/@bananapus/swap-terminal/deployments/"))
+            vm.envOr("NANA_SWAP_TERMINAL_DEPLOYMENT_PATH", string("node_modules/@bananapus/swap-terminal-v5/deployments/"))
         );
         // Get the deployment addresses for the 721 hook contracts for this chain.
         buybackHook = BuybackDeploymentLib.getDeployment(
-            vm.envOr("NANA_BUYBACK_HOOK_DEPLOYMENT_PATH", string("node_modules/@bananapus/buyback-hook/deployments/"))
+            vm.envOr("NANA_BUYBACK_HOOK_DEPLOYMENT_PATH", string("node_modules/@bananapus/buyback-hook-v5/deployments/"))
         );
 
         // We use the same trusted forwarder and permit2 as the core deployment.

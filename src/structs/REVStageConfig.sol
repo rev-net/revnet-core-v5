@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {JBSplit} from "@bananapus/core/src/structs/JBSplit.sol";
+import {JBSplit} from "@bananapus/core-v5src/structs/JBSplit.sol";
 
 import {REVAutoIssuance} from "./REVAutoIssuance.sol";
 

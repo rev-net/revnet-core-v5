@@ -14,8 +14,8 @@ import "@croptop/core-v5/script/helpers/CroptopDeploymentLib.sol";
 import "@bananapus/swap-terminal-v5/script/helpers/SwapTerminalDeploymentLib.sol";
 import "@bananapus/buyback-hook-v5/script/helpers/BuybackDeploymentLib.sol";
 
-import {JBConstants} from "@bananapus/core-v5src/libraries/JBConstants.sol";
-import {JBAccountingContext} from "@bananapus/core-v5src/structs/JBAccountingContext.sol";
+import {JBConstants} from "@bananapus/core-v5/src/libraries/JBConstants.sol";
+import {JBAccountingContext} from "@bananapus/core-v5/src/structs/JBAccountingContext.sol";
 import {MockPriceFeed} from "@bananapus/core-v5test/mock/MockPriceFeed.sol";
 import {MockERC20} from "@bananapus/core-v5test/mock/MockERC20.sol";
 import {REVLoans} from "../src/REVLoans.sol";

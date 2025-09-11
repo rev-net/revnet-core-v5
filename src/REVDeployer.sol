@@ -7,41 +7,41 @@ import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Recei
 import {ERC2771Context} from "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {mulDiv} from "@prb/math/src/Common.sol";
-import {IJB721TiersHook} from "@bananapus/721-hook/src/interfaces/IJB721TiersHook.sol";
-import {IJB721TiersHookDeployer} from "@bananapus/721-hook/src/interfaces/IJB721TiersHookDeployer.sol";
-import {IJBBuybackHook} from "@bananapus/buyback-hook/src/interfaces/IJBBuybackHook.sol";
-import {IJBCashOutHook} from "@bananapus/core/src/interfaces/IJBCashOutHook.sol";
-import {IJBController} from "@bananapus/core/src/interfaces/IJBController.sol";
-import {IJBDirectory} from "@bananapus/core/src/interfaces/IJBDirectory.sol";
-import {IJBPayHook} from "@bananapus/core/src/interfaces/IJBPayHook.sol";
-import {IJBPermissioned} from "@bananapus/core/src/interfaces/IJBPermissioned.sol";
-import {IJBPermissions} from "@bananapus/core/src/interfaces/IJBPermissions.sol";
-import {IJBProjects} from "@bananapus/core/src/interfaces/IJBProjects.sol";
-import {IJBRulesetApprovalHook} from "@bananapus/core/src/interfaces/IJBRulesetApprovalHook.sol";
-import {IJBRulesetDataHook} from "@bananapus/core/src/interfaces/IJBRulesetDataHook.sol";
-import {IJBSplitHook} from "@bananapus/core/src/interfaces/IJBSplitHook.sol";
-import {IJBTerminal} from "@bananapus/core/src/interfaces/IJBTerminal.sol";
-import {JBCashOuts} from "@bananapus/core/src/libraries/JBCashOuts.sol";
-import {JBConstants} from "@bananapus/core/src/libraries/JBConstants.sol";
-import {JBSplitGroupIds} from "@bananapus/core/src/libraries/JBSplitGroupIds.sol";
-import {JBAccountingContext} from "@bananapus/core/src/structs/JBAccountingContext.sol";
-import {JBAfterCashOutRecordedContext} from "@bananapus/core/src/structs/JBAfterCashOutRecordedContext.sol";
-import {JBBeforePayRecordedContext} from "@bananapus/core/src/structs/JBBeforePayRecordedContext.sol";
-import {JBBeforeCashOutRecordedContext} from "@bananapus/core/src/structs/JBBeforeCashOutRecordedContext.sol";
-import {JBCurrencyAmount} from "@bananapus/core/src/structs/JBCurrencyAmount.sol";
-import {JBFundAccessLimitGroup} from "@bananapus/core/src/structs/JBFundAccessLimitGroup.sol";
-import {JBPermissionsData} from "@bananapus/core/src/structs/JBPermissionsData.sol";
-import {JBPayHookSpecification} from "@bananapus/core/src/structs/JBPayHookSpecification.sol";
-import {JBRulesetConfig} from "@bananapus/core/src/structs/JBRulesetConfig.sol";
-import {JBRulesetMetadata} from "@bananapus/core/src/structs/JBRulesetMetadata.sol";
-import {JBSplit} from "@bananapus/core/src/structs/JBSplit.sol";
-import {JBSplitGroup} from "@bananapus/core/src/structs/JBSplitGroup.sol";
-import {JBTerminalConfig} from "@bananapus/core/src/structs/JBTerminalConfig.sol";
-import {JBCashOutHookSpecification} from "@bananapus/core/src/structs/JBCashOutHookSpecification.sol";
-import {JBPermissionIds} from "@bananapus/permission-ids/src/JBPermissionIds.sol";
-import {IJBSuckerRegistry} from "@bananapus/suckers/src/interfaces/IJBSuckerRegistry.sol";
-import {CTPublisher} from "@croptop/core/src/CTPublisher.sol";
-import {CTAllowedPost} from "@croptop/core/src/structs/CTAllowedPost.sol";
+import {IJB721TiersHook} from "@bananapus/721-hook-v5/src/interfaces/IJB721TiersHook.sol";
+import {IJB721TiersHookDeployer} from "@bananapus/721-hook-v5/src/interfaces/IJB721TiersHookDeployer.sol";
+import {IJBBuybackHook} from "@bananapus/buyback-hook-v5/src/interfaces/IJBBuybackHook.sol";
+import {IJBCashOutHook} from "@bananapus/core-v5/src/interfaces/IJBCashOutHook.sol";
+import {IJBController} from "@bananapus/core-v5/src/interfaces/IJBController.sol";
+import {IJBDirectory} from "@bananapus/core-v5/src/interfaces/IJBDirectory.sol";
+import {IJBPayHook} from "@bananapus/core-v5/src/interfaces/IJBPayHook.sol";
+import {IJBPermissioned} from "@bananapus/core-v5/src/interfaces/IJBPermissioned.sol";
+import {IJBPermissions} from "@bananapus/core-v5/src/interfaces/IJBPermissions.sol";
+import {IJBProjects} from "@bananapus/core-v5/src/interfaces/IJBProjects.sol";
+import {IJBRulesetApprovalHook} from "@bananapus/core-v5/src/interfaces/IJBRulesetApprovalHook.sol";
+import {IJBRulesetDataHook} from "@bananapus/core-v5/src/interfaces/IJBRulesetDataHook.sol";
+import {IJBSplitHook} from "@bananapus/core-v5/src/interfaces/IJBSplitHook.sol";
+import {IJBTerminal} from "@bananapus/core-v5/src/interfaces/IJBTerminal.sol";
+import {JBCashOuts} from "@bananapus/core-v5/src/libraries/JBCashOuts.sol";
+import {JBConstants} from "@bananapus/core-v5/src/libraries/JBConstants.sol";
+import {JBSplitGroupIds} from "@bananapus/core-v5/src/libraries/JBSplitGroupIds.sol";
+import {JBAccountingContext} from "@bananapus/core-v5/src/structs/JBAccountingContext.sol";
+import {JBAfterCashOutRecordedContext} from "@bananapus/core-v5/src/structs/JBAfterCashOutRecordedContext.sol";
+import {JBBeforePayRecordedContext} from "@bananapus/core-v5/src/structs/JBBeforePayRecordedContext.sol";
+import {JBBeforeCashOutRecordedContext} from "@bananapus/core-v5/src/structs/JBBeforeCashOutRecordedContext.sol";
+import {JBCurrencyAmount} from "@bananapus/core-v5/src/structs/JBCurrencyAmount.sol";
+import {JBFundAccessLimitGroup} from "@bananapus/core-v5/src/structs/JBFundAccessLimitGroup.sol";
+import {JBPermissionsData} from "@bananapus/core-v5/src/structs/JBPermissionsData.sol";
+import {JBPayHookSpecification} from "@bananapus/core-v5/src/structs/JBPayHookSpecification.sol";
+import {JBRulesetConfig} from "@bananapus/core-v5/src/structs/JBRulesetConfig.sol";
+import {JBRulesetMetadata} from "@bananapus/core-v5/src/structs/JBRulesetMetadata.sol";
+import {JBSplit} from "@bananapus/core-v5/src/structs/JBSplit.sol";
+import {JBSplitGroup} from "@bananapus/core-v5/src/structs/JBSplitGroup.sol";
+import {JBTerminalConfig} from "@bananapus/core-v5/src/structs/JBTerminalConfig.sol";
+import {JBCashOutHookSpecification} from "@bananapus/core-v5/src/structs/JBCashOutHookSpecification.sol";
+import {JBPermissionIds} from "@bananapus/permission-ids-v5/src/JBPermissionIds.sol";
+import {IJBSuckerRegistry} from "@bananapus/suckers-v5/src/interfaces/IJBSuckerRegistry.sol";
+import {CTPublisher} from "@croptop/core-v5/src/CTPublisher.sol";
+import {CTAllowedPost} from "@croptop/core-v5/src/structs/CTAllowedPost.sol";
 
 import {IREVDeployer} from "./interfaces/IREVDeployer.sol";
 import {REVAutoIssuance} from "./structs/REVAutoIssuance.sol";
@@ -337,8 +337,9 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
     /// @param addr The address to check the mint permission of.
     /// @return flag A flag indicating whether the address has permission to mint the revnet's tokens on-demand.
     function hasMintPermissionFor(uint256 revnetId, address addr) external view override returns (bool) {
+        IJBRulesetDataHook buybackHook = buybackHookOf[revnetId];
         // The buyback hook, loans contract, and suckers are allowed to mint the revnet's tokens.
-        return addr == address(buybackHookOf[revnetId]) || addr == loansOf[revnetId]
+        return addr == address(buybackHook) || buybackHook.hasMintPermissionFor(revnetId, addr) || addr == loansOf[revnetId]
             || _isSuckerOf({revnetId: revnetId, addr: addr});
     }
 
@@ -1000,23 +1001,25 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
         });
 
         // If specified, set up the buyback hook.
-        if (buybackHookConfiguration.hook != IJBBuybackHook(address(0))) {
+        if (buybackHookConfiguration.dataHook != IJBRulesetDataHook(address(0))) {
             // Store the buyback hook.
-            buybackHookOf[revnetId] = buybackHookConfiguration.hook;
+            buybackHookOf[revnetId] = buybackHookConfiguration.dataHook;
 
-            for (uint256 i; i < buybackHookConfiguration.poolConfigurations.length; i++) {
-                // Set the pool being iterated on.
-                REVBuybackPoolConfig calldata poolConfig = buybackHookConfiguration.poolConfigurations[i];
+            if (buybackHookConfiguration.hookToConfigure != IJBBuybackHook(address(0))) {
+                for (uint256 i; i < buybackHookConfiguration.poolConfigurations.length; i++) {
+                    // Set the pool being iterated on.
+                    REVBuybackPoolConfig calldata poolConfig = buybackHookConfiguration.poolConfigurations[i];
 
-                // Register the pool within the buyback contract.
-                // slither-disable-next-line unused-return
-                buybackHookConfiguration.hook.setPoolFor({
-                    projectId: revnetId,
-                    fee: poolConfig.fee,
-                    twapWindow: poolConfig.twapWindow,
-                    twapSlippageTolerance: poolConfig.twapSlippageTolerance,
-                    terminalToken: poolConfig.token
-                });
+                    // Register the pool within the buyback contract.
+                    // slither-disable-next-line unused-return
+                    buybackHookConfiguration.hookToConfigure.setPoolFor({
+                        projectId: revnetId,
+                        fee: poolConfig.fee,
+                        twapWindow: poolConfig.twapWindow,
+                        twapSlippageTolerance: poolConfig.twapSlippageTolerance,
+                        terminalToken: poolConfig.token
+                    });
+                }
             }
         }
 

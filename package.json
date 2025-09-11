@@ -1,10 +1,10 @@
 {
-    "name": "@rev-net/core",
-    "version": "1.0.0",
+    "name": "@rev-net/core-v5",
+    "version": "0.0.1",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/rev-net/revnet-core"
+        "url": "git+https://github.com/rev-net/revnet-core-v5"
     },
     "scripts": {
         "test": "forge test",
@@ -16,14 +16,13 @@
         "artifacts": "source ./.env && npx sphinx artifacts --org-id 'ea165b21-7cdc-4d7b-be59-ecdd4c26bee4' --project-name 'revnet-core'"
     },
     "dependencies": {
-        "@bananapus/721-hook": "^1.0.0",
-        "@bananapus/buyback-hook": "^1.0.0",
-        "@bananapus/core": "^1.0.0",
-        "@bananapus/ownable": "^0.0.9",
-        "@bananapus/permission-ids": "^0.0.17",
-        "@bananapus/suckers": "^1.0.2",
-        "@bananapus/swap-terminal": "^1.0.0",
-        "@croptop/core": "^1.0.0",
+        "@bananapus/721-hook-v5": "^0.0.1",
+        "@bananapus/buyback-hook-v5": "^0.0.1",
+        "@bananapus/core-v5": "^0.0.1",
+        "@bananapus/permission-ids-v5": "^0.0.1",
+        "@bananapus/suckers-v5": "^0.0.1",
+        "@bananapus/swap-terminal-v5": "^0.0.1",
+        "@croptop/core-v5": "^0.0.1",
         "@openzeppelin/contracts": "^5.2.0"
     },
     "devDependencies": {

@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 import {StdInvariant} from "forge-std/StdInvariant.sol";
-import /* {*} from */ "@bananapus/core-v5test/helpers/TestBaseWorkflow.sol";
+import /* {*} from */ "@bananapus/core-v5/test/helpers/TestBaseWorkflow.sol";
 import /* {*} from "@bananapus/721-hook-v5/src/JB721TiersHookDeployer.sol";
     import /* {*} from */ "./../src/REVDeployer.sol";
 import /* {*} from */ "./../src/REVLoans.sol";

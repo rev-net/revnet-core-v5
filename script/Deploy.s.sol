@@ -245,7 +245,7 @@ contract DeployScript is Script, Sphinx {
         });
 
         REVBuybackHookConfig memory buybackHookConfiguration =
-            REVBuybackHookConfig({hook: buybackHook.hook, poolConfigurations: buybackPoolConfigurations});
+            REVBuybackHookConfig({dataHook: buybackHook.hook, hookToConfigure: buybackHook.hook, poolConfigurations: buybackPoolConfigurations});
 
         // Organize the instructions for how this project will connect to other chains.
         JBTokenMapping[] memory tokenMappings = new JBTokenMapping[](1);

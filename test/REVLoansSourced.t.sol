@@ -171,7 +171,7 @@ contract REVLoansSourcedTests is TestBaseWorkflow, JBTest {
             twapSlippageTolerance: 9000
         });
         REVBuybackHookConfig memory buybackHookConfiguration =
-            REVBuybackHookConfig({hook: IJBBuybackHook(address(0)), poolConfigurations: buybackPoolConfigurations});
+            REVBuybackHookConfig({dataHook: IJBRulesetDataHook(address(0)), hookToConfigure: IJBBuybackHook(address(0)), poolConfigurations: buybackPoolConfigurations});
 
         return FeeProjectConfig({
             configuration: revnetConfiguration,
@@ -285,7 +285,7 @@ contract REVLoansSourcedTests is TestBaseWorkflow, JBTest {
             twapSlippageTolerance: 9000
         });
         REVBuybackHookConfig memory buybackHookConfiguration =
-            REVBuybackHookConfig({hook: IJBBuybackHook(address(0)), poolConfigurations: buybackPoolConfigurations});
+            REVBuybackHookConfig({dataHook: IJBRulesetDataHook(address(0)), hookToConfigure: IJBBuybackHook(address(0)), poolConfigurations: buybackPoolConfigurations});
 
         return FeeProjectConfig({
             configuration: revnetConfiguration,

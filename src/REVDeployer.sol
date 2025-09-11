@@ -1001,23 +1001,25 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
         });
 
         // If specified, set up the buyback hook.
-        if (buybackHookConfiguration.hook != IJBBuybackHook(address(0))) {
+        if (buybackHookConfiguration.dataHook != IJBRulesetDataHook(address(0))) {
             // Store the buyback hook.
-            buybackHookOf[revnetId] = buybackHookConfiguration.hook;
+            buybackHookOf[revnetId] = buybackHookConfiguration.dataHook;
 
-            for (uint256 i; i < buybackHookConfiguration.poolConfigurations.length; i++) {
-                // Set the pool being iterated on.
-                REVBuybackPoolConfig calldata poolConfig = buybackHookConfiguration.poolConfigurations[i];
+            if (buybackHookConfiguration.hookToConfigure != IJBBuybackHook(address(0))) {
+                for (uint256 i; i < buybackHookConfiguration.poolConfigurations.length; i++) {
+                    // Set the pool being iterated on.
+                    REVBuybackPoolConfig calldata poolConfig = buybackHookConfiguration.poolConfigurations[i];
 
-                // Register the pool within the buyback contract.
-                // slither-disable-next-line unused-return
-                buybackHookConfiguration.hook.setPoolFor({
-                    projectId: revnetId,
-                    fee: poolConfig.fee,
-                    twapWindow: poolConfig.twapWindow,
-                    twapSlippageTolerance: poolConfig.twapSlippageTolerance,
-                    terminalToken: poolConfig.token
-                });
+                    // Register the pool within the buyback contract.
+                    // slither-disable-next-line unused-return
+                    buybackHookConfiguration.hookToConfigure.setPoolFor({
+                        projectId: revnetId,
+                        fee: poolConfig.fee,
+                        twapWindow: poolConfig.twapWindow,
+                        twapSlippageTolerance: poolConfig.twapSlippageTolerance,
+                        terminalToken: poolConfig.token
+                    });
+                }
             }
         }
 

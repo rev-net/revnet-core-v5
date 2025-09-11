@@ -2,22 +2,22 @@
 pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
-import /* {*} from */ "@bananapus/core/test/helpers/TestBaseWorkflow.sol";
-import /* {*} from "@bananapus/721-hook/src/JB721TiersHookDeployer.sol";
+import /* {*} from */ "@bananapus/core-v5/test/helpers/TestBaseWorkflow.sol";
+import /* {*} from "@bananapus/721-hook-v5/src/JB721TiersHookDeployer.sol";
     import /* {*} from */ "./../src/REVDeployer.sol";
-import "@croptop/core/src/CTPublisher.sol";
+import "@croptop/core-v5/src/CTPublisher.sol";
 
-import "@bananapus/core/script/helpers/CoreDeploymentLib.sol";
-import "@bananapus/721-hook/script/helpers/Hook721DeploymentLib.sol";
-import "@bananapus/suckers/script/helpers/SuckerDeploymentLib.sol";
-import "@croptop/core/script/helpers/CroptopDeploymentLib.sol";
-import "@bananapus/swap-terminal/script/helpers/SwapTerminalDeploymentLib.sol";
-import "@bananapus/buyback-hook/script/helpers/BuybackDeploymentLib.sol";
+import "@bananapus/core-v5/script/helpers/CoreDeploymentLib.sol";
+import "@bananapus/721-hook-v5/script/helpers/Hook721DeploymentLib.sol";
+import "@bananapus/suckers-v5/script/helpers/SuckerDeploymentLib.sol";
+import "@croptop/core-v5/script/helpers/CroptopDeploymentLib.sol";
+import "@bananapus/swap-terminal-v5/script/helpers/SwapTerminalDeploymentLib.sol";
+import "@bananapus/buyback-hook-v5/script/helpers/BuybackDeploymentLib.sol";
 
-import {JBConstants} from "@bananapus/core/src/libraries/JBConstants.sol";
-import {JBAccountingContext} from "@bananapus/core/src/structs/JBAccountingContext.sol";
-import {MockPriceFeed} from "@bananapus/core/test/mock/MockPriceFeed.sol";
-import {MockERC20} from "@bananapus/core/test/mock/MockERC20.sol";
+import {JBConstants} from "@bananapus/core-v5/src/libraries/JBConstants.sol";
+import {JBAccountingContext} from "@bananapus/core-v5/src/structs/JBAccountingContext.sol";
+import {MockPriceFeed} from "@bananapus/core-v5/test/mock/MockPriceFeed.sol";
+import {MockERC20} from "@bananapus/core-v5/test/mock/MockERC20.sol";
 import {REVLoans} from "../src/REVLoans.sol";
 import {REVLoan} from "../src/structs/REVLoan.sol";
 import {REVStageConfig, REVAutoIssuance} from "../src/structs/REVStageConfig.sol";
@@ -25,11 +25,11 @@ import {REVLoanSource} from "../src/structs/REVLoanSource.sol";
 import {REVDescription} from "../src/structs/REVDescription.sol";
 import {REVBuybackPoolConfig} from "../src/structs/REVBuybackPoolConfig.sol";
 import {IREVLoans} from "./../src/interfaces/IREVLoans.sol";
-import {JBSuckerDeployerConfig} from "@bananapus/suckers/src/structs/JBSuckerDeployerConfig.sol";
-import {JBSuckerRegistry} from "@bananapus/suckers/src/JBSuckerRegistry.sol";
-import {JB721TiersHookDeployer} from "@bananapus/721-hook/src/JB721TiersHookDeployer.sol";
-import {JB721TiersHook} from "@bananapus/721-hook/src/JB721TiersHook.sol";
-import {JB721TiersHookStore} from "@bananapus/721-hook/src/JB721TiersHookStore.sol";
+import {JBSuckerDeployerConfig} from "@bananapus/suckers-v5/src/structs/JBSuckerDeployerConfig.sol";
+import {JBSuckerRegistry} from "@bananapus/suckers-v5/src/JBSuckerRegistry.sol";
+import {JB721TiersHookDeployer} from "@bananapus/721-hook-v5/src/JB721TiersHookDeployer.sol";
+import {JB721TiersHook} from "@bananapus/721-hook-v5/src/JB721TiersHook.sol";
+import {JB721TiersHookStore} from "@bananapus/721-hook-v5/src/JB721TiersHookStore.sol";
 import {JBAddressRegistry} from "@bananapus/address-registry/src/JBAddressRegistry.sol";
 import {IJBAddressRegistry} from "@bananapus/address-registry/src/interfaces/IJBAddressRegistry.sol";
 
@@ -171,7 +171,7 @@ contract REVLoansSourcedTests is TestBaseWorkflow, JBTest {
             twapSlippageTolerance: 9000
         });
         REVBuybackHookConfig memory buybackHookConfiguration =
-            REVBuybackHookConfig({hook: IJBBuybackHook(address(0)), poolConfigurations: buybackPoolConfigurations});
+            REVBuybackHookConfig({dataHook: IJBRulesetDataHook(address(0)), hookToConfigure: IJBBuybackHook(address(0)), poolConfigurations: buybackPoolConfigurations});
 
         return FeeProjectConfig({
             configuration: revnetConfiguration,
@@ -285,7 +285,7 @@ contract REVLoansSourcedTests is TestBaseWorkflow, JBTest {
             twapSlippageTolerance: 9000
         });
         REVBuybackHookConfig memory buybackHookConfiguration =
-            REVBuybackHookConfig({hook: IJBBuybackHook(address(0)), poolConfigurations: buybackPoolConfigurations});
+            REVBuybackHookConfig({dataHook: IJBRulesetDataHook(address(0)), hookToConfigure: IJBBuybackHook(address(0)), poolConfigurations: buybackPoolConfigurations});
 
         return FeeProjectConfig({
             configuration: revnetConfiguration,
@@ -476,15 +476,14 @@ contract REVLoansSourcedTests is TestBaseWorkflow, JBTest {
         assertEq(loan.prepaidDuration, 3650 days);
     }
 
-    function test_Borrow_Duration_WorstCase_Repay() public {
-        // TODO: This `330` feels off, as the total fee is not ~83% but closer to ~70%.
+    function test_Borrow_Duration_WorstCase_Repay(uint256 payableAmount) public {
         // Seems like something in our test logic/math is incorrect.
-        _borrowAndRepay(499, 100 ether, 330);
+        _borrowAndRepay(LOANS_CONTRACT.MAX_PREPAID_FEE_PERCENT() - 1, payableAmount, 999);
     }
 
     function test_Borrow_Duration_MinPrepaid_MaxDuration_Repay(uint256 payableAmount) public {
         // We prepay the minimum fee.
-        _borrowAndRepay(LOANS_CONTRACT.MIN_PREPAID_FEE_PERCENT(), payableAmount, 500);
+        _borrowAndRepay(LOANS_CONTRACT.MIN_PREPAID_FEE_PERCENT(), payableAmount, 1000);
     }
 
     function test_Borrow_Duration_MaxPrepaid_MaxDuration_Repay(uint256 payableAmount) public {
@@ -497,7 +496,7 @@ contract REVLoansSourcedTests is TestBaseWorkflow, JBTest {
         vm.startPrank(USER);
 
         // Deal the user some tokens.
-        deal(address(TOKEN), USER, payableAmount * 2);
+        deal(address(TOKEN), USER, payableAmount * 3);
 
         // Approve the terminal to spend the tokens.
         TOKEN.approve(address(jbMultiTerminal()), payableAmount);
@@ -528,26 +527,30 @@ contract REVLoansSourcedTests is TestBaseWorkflow, JBTest {
         uint256 receivedFromLoan = TOKEN.balanceOf(USER) - balanceBeforeLoan;
 
         // Check that we prepaid the expected percentage.
-        uint256 otherFees = LOANS_CONTRACT.REV_PREPAID_FEE_PERCENT() + 25; // 25 is protocol fee.
-        assertApproxEqAbs(loanable * (1000 - otherFees - prepaidFee) / 1000, receivedFromLoan, 100);
+        {
+            uint256 otherFees = LOANS_CONTRACT.REV_PREPAID_FEE_PERCENT() + 25; // 25 is jb protocol fee.
+            assertApproxEqAbs(loanable * (1000 - otherFees - prepaidFee) / 1000, receivedFromLoan, 10);
+        }
 
         // Forward time to right before the loan reaches liquidation.
         vm.warp(block.timestamp + 3650 days);
 
         // Repay the loan.
         uint256 balanceBefore = TOKEN.balanceOf(USER);
-        JBSingleAllowance memory allowance;
-        TOKEN.approve(address(LOANS_CONTRACT), type(uint256).max);
-        LOANS_CONTRACT.repayLoan(newLoanId, loan.amount * 15 / 10, loan.collateral, payable(USER), allowance);
+        {
+            JBSingleAllowance memory allowance;
+            TOKEN.approve(address(LOANS_CONTRACT), type(uint256).max);
+            LOANS_CONTRACT.repayLoan(newLoanId, loan.amount * 2, loan.collateral, payable(USER), allowance);
+        }
 
         // Track what amount we end up paying.
         uint256 amountPaid = balanceBefore - TOKEN.balanceOf(USER);
 
-        // We expect the fee to be 50% for the min prepaid with the max duration.
-        uint256 expectedFee = loan.amount * expectedFeePercent / 1000;
+        // We expect the fee to be 100% for the min prepaid with the max duration.
+        uint256 expectedFee = (loan.amount * (1000 - prepaidFee) / 1000) * expectedFeePercent / 1000;
 
         // The fee may deviate 1%.
-        assertApproxEqRel(amountPaid, loan.amount + expectedFee, 0.01 ether);
+        assertApproxEqRel(amountPaid, loan.amount + expectedFee, 0.001 ether);
 
         vm.stopPrank();
     }
@@ -1521,7 +1524,7 @@ contract REVLoansSourcedTests is TestBaseWorkflow, JBTest {
         assertEq(address(sourcesUpdated[0].terminal), address(jbMultiTerminal()));
 
         // Check the fee amount after warping forward past the prepaid duration
-        vm.warp(block.timestamp + loan.prepaidDuration + 1 days);
+        vm.warp(block.timestamp + loan.prepaidDuration + 100 days);
         uint256 feeAmount = LOANS_CONTRACT.determineSourceFeeAmount(loan, loan.amount);
         assertGt(feeAmount, 0);
 
@@ -1529,7 +1532,7 @@ contract REVLoansSourcedTests is TestBaseWorkflow, JBTest {
         vm.warp(block.timestamp + 3650 days);
         vm.expectRevert(
             abi.encodeWithSelector(
-                REVLoans.REVLoans_LoanExpired.selector, loan.prepaidDuration + 1 days + 3650 days, 3650 days
+                REVLoans.REVLoans_LoanExpired.selector, loan.prepaidDuration + 100 days + 3650 days, 3650 days
             )
         );
 

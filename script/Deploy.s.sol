@@ -70,11 +70,11 @@ contract DeployScript is Script, Sphinx {
     address OPERATOR;
     address TRUSTED_FORWARDER;
     IPermit2 PERMIT2;
-    uint256 REV_START_TIME = 1739831543;
-    uint256 REV_MAINNET_AUTO_ISSUANCE_ = 957932309500316260835082;
-    uint256 REV_BASE_AUTO_ISSUANCE_ = 1000000000000000000000000;
-    uint256 REV_OP_AUTO_ISSUANCE_ = 1000000000000000000000000;
-    uint256 REV_ARB_AUTO_ISSUANCE_ = 1000000000000000000000000;
+    uint256 REV_START_TIME = 1740089444;
+    uint256 REV_MAINNET_AUTO_ISSUANCE_ = 1000482341387116262330122;
+    uint256 REV_BASE_AUTO_ISSUANCE_ = 38544322230437559731228;
+    uint256 REV_OP_AUTO_ISSUANCE_ = 32069388242375817844;
+    uint256 REV_ARB_AUTO_ISSUANCE_ = 3479431776906850000000;
 
     function configureSphinx() public override {
         // TODO: Update to contain revnet devs.
@@ -119,20 +119,6 @@ contract DeployScript is Script, Sphinx {
         TRUSTED_FORWARDER = core.controller.trustedForwarder();
         PERMIT2 = core.terminal.PERMIT2();
 
-        // Since Juicebox has logic dependent on the timestamp we warp time to create a scenario closer to production.
-        // We force simulations to make the assumption that the `START_TIME` has not occured,
-        // and is not the current time.
-        // Because of the cross-chain allowing components of nana-core, all chains require the same start_time,
-        // for this reason we can't rely on the simulations block.time and we need a shared timestamp across all
-        // simulations.
-        // uint256 _realTimestamp = vm.envUint("START_TIME");
-        uint256 _realTimestamp = 1_739_830_244; // timestamp hardcoded at time of deploy.
-        if (_realTimestamp <= block.timestamp - TIME_UNTIL_START) {
-            revert("Something went wrong while setting the 'START_TIME' environment variable.");
-        }
-
-        vm.warp(_realTimestamp);
-
         // Perform the deployment transactions.
         deploy();
     }
@@ -150,7 +136,7 @@ contract DeployScript is Script, Sphinx {
         terminalConfigurations[0] =
             JBTerminalConfig({terminal: core.terminal, accountingContextsToAccept: accountingContextsToAccept});
         terminalConfigurations[1] = JBTerminalConfig({
-            terminal: IJBTerminal(address(swapTerminal.swap_terminal)),
+            terminal: IJBTerminal(address(swapTerminal.registry)),
             accountingContextsToAccept: new JBAccountingContext[](0)
         });
 
@@ -259,12 +245,11 @@ contract DeployScript is Script, Sphinx {
         buybackPoolConfigurations[0] = REVBuybackPoolConfig({
             token: JBConstants.NATIVE_TOKEN,
             fee: 10_000,
-            twapWindow: 2 days,
-            twapSlippageTolerance: 1000
+            twapWindow: 2 days
         });
 
         REVBuybackHookConfig memory buybackHookConfiguration =
-            REVBuybackHookConfig({dataHook: buybackHook.hook, hookToConfigure: buybackHook.hook, poolConfigurations: buybackPoolConfigurations});
+            REVBuybackHookConfig({dataHook: buybackHook.registry, hookToConfigure: buybackHook.hook, poolConfigurations: buybackPoolConfigurations});
 
         // Organize the instructions for how this project will connect to other chains.
         JBTokenMapping[] memory tokenMappings = new JBTokenMapping[](1);

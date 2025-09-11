@@ -7,7 +7,7 @@ import /* {*} from "@bananapus/721-hook-v5/src/JB721TiersHookDeployer.sol";
     import /* {*} from */ "./../src/REVDeployer.sol";
 import "@croptop/core-v5/src/CTPublisher.sol";
 
-import "@bananapus/core-v5script/helpers/CoreDeploymentLib.sol";
+import "@bananapus/core-v5/script/helpers/CoreDeploymentLib.sol";
 import "@bananapus/721-hook-v5/script/helpers/Hook721DeploymentLib.sol";
 import "@bananapus/suckers-v5/script/helpers/SuckerDeploymentLib.sol";
 import "@croptop/core-v5/script/helpers/CroptopDeploymentLib.sol";

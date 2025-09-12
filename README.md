@@ -2,7 +2,7 @@
 
 This repo provides tools for deploying Revnets: Retailistic networks, using the Juicebox and Uniswap protocols for its implementation.
 
-For a Retailism TLDR, see https://jango.eth.limo/9E01E72C-6028-48B7-AD04-F25393307132/.
+For a Retailism TLDR, see https://jango.eth.sucks/9E01E72C-6028-48B7-AD04-F25393307132/.
 
 For more Retailism information, see:
 

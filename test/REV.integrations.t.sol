@@ -31,8 +31,8 @@ import {JBArbitrumSucker, JBLayer, IArbGatewayRouter, IInbox} from "@bananapus/s
 import {JBAddToBalanceMode} from "@bananapus/suckers-v5/src/enums/JBAddToBalanceMode.sol";
 import {JB721TiersHook} from "@bananapus/721-hook-v5/src/JB721TiersHook.sol";
 import {JB721TiersHookStore} from "@bananapus/721-hook-v5/src/JB721TiersHookStore.sol";
-import {JBAddressRegistry} from "@bananapus/address-registry/src/JBAddressRegistry.sol";
-import {IJBAddressRegistry} from "@bananapus/address-registry/src/interfaces/IJBAddressRegistry.sol";
+import {JBAddressRegistry} from "@bananapus/address-registry-v5/src/JBAddressRegistry.sol";
+import {IJBAddressRegistry} from "@bananapus/address-registry-v5/src/interfaces/IJBAddressRegistry.sol";
 
 struct FeeProjectConfig {
     REVConfig configuration;
@@ -172,14 +172,13 @@ contract REVnet_Integrations is TestBaseWorkflow, JBTest {
 
         // The project's buyback hook configuration.
         REVBuybackPoolConfig[] memory buybackPoolConfigurations = new REVBuybackPoolConfig[](1);
-        buybackPoolConfigurations[0] = REVBuybackPoolConfig({
-            token: JBConstants.NATIVE_TOKEN,
-            fee: 10_000,
-            twapWindow: 2 days,
-            twapSlippageTolerance: 9000
+        buybackPoolConfigurations[0] =
+            REVBuybackPoolConfig({token: JBConstants.NATIVE_TOKEN, fee: 10_000, twapWindow: 2 days});
+        REVBuybackHookConfig memory buybackHookConfiguration = REVBuybackHookConfig({
+            dataHook: IJBRulesetDataHook(address(0)),
+            hookToConfigure: IJBBuybackHook(address(0)),
+            poolConfigurations: buybackPoolConfigurations
         });
-        REVBuybackHookConfig memory buybackHookConfiguration =
-            REVBuybackHookConfig({dataHook: IJBRulesetDataHook(address(0)), hookToConfigure: IJBBuybackHook(address(0)), poolConfigurations: buybackPoolConfigurations});
 
         return FeeProjectConfig({
             configuration: revnetConfiguration,
@@ -207,7 +206,7 @@ contract REVnet_Integrations is TestBaseWorkflow, JBTest {
 
         HOOK_DEPLOYER = new JB721TiersHookDeployer(EXAMPLE_HOOK, HOOK_STORE, ADDRESS_REGISTRY, multisig());
 
-        PUBLISHER = new CTPublisher(jbController(), jbPermissions(), FEE_PROJECT_ID, multisig());
+        PUBLISHER = new CTPublisher(jbDirectory(), jbPermissions(), FEE_PROJECT_ID, multisig());
 
         REV_DEPLOYER = new REVDeployer{salt: REV_DEPLOYER_SALT}(
             jbController(), SUCKER_REGISTRY, FEE_PROJECT_ID, HOOK_DEPLOYER, PUBLISHER, TRUSTED_FORWARDER

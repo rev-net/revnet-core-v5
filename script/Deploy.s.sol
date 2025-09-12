@@ -62,23 +62,23 @@ contract DeployScript is Script, Sphinx {
     uint32 ETH_CURRENCY = JBCurrencyIds.ETH;
     uint8 DECIMALS = 18;
     uint256 DECIMAL_MULTIPLIER = 10 ** DECIMALS;
-    bytes32 ERC20_SALT = "_REV_ERC20_SALT_";
-    bytes32 SUCKER_SALT = "_REV_SUCKER_SALT_";
-    bytes32 DEPLOYER_SALT = "_REV_DEPLOYER_SALT_";
-    bytes32 REVLOANS_SALT = "_REV_LOANS_SALT_";
+    bytes32 ERC20_SALT = "_REV_ERC20_SALT__";
+    bytes32 SUCKER_SALT = "_REV_SUCKER_SALT__";
+    bytes32 DEPLOYER_SALT = "_REV_DEPLOYER_SALT__";
+    bytes32 REVLOANS_SALT = "_REV_LOANS_SALT__";
     address LOANS_OWNER;
     address OPERATOR;
     address TRUSTED_FORWARDER;
     IPermit2 PERMIT2;
-    uint256 REV_START_TIME = 1739831543;
-    uint256 REV_MAINNET_AUTO_ISSUANCE_ = 957932309500316260835082;
-    uint256 REV_BASE_AUTO_ISSUANCE_ = 1000000000000000000000000;
-    uint256 REV_OP_AUTO_ISSUANCE_ = 1000000000000000000000000;
-    uint256 REV_ARB_AUTO_ISSUANCE_ = 1000000000000000000000000;
+    uint48 REV_START_TIME = 1_740_089_444;
+    uint104 REV_MAINNET_AUTO_ISSUANCE_ = 1_050_482_341_387_116_262_330_122;
+    uint104 REV_BASE_AUTO_ISSUANCE_ = 38_544_322_230_437_559_731_228;
+    uint104 REV_OP_AUTO_ISSUANCE_ = 32_069_388_242_375_817_844;
+    uint104 REV_ARB_AUTO_ISSUANCE_ = 3_479_431_776_906_850_000_000;
 
     function configureSphinx() public override {
         // TODO: Update to contain revnet devs.
-        sphinxConfig.projectName = "revnet-core-testnet";
+        sphinxConfig.projectName = "revnet-core-v5";
         sphinxConfig.mainnets = ["ethereum", "optimism", "base", "arbitrum"];
         sphinxConfig.testnets = ["ethereum_sepolia", "optimism_sepolia", "base_sepolia", "arbitrum_sepolia"];
     }
@@ -108,30 +108,20 @@ contract DeployScript is Script, Sphinx {
         );
         // Get the deployment addresses for the 721 hook contracts for this chain.
         swapTerminal = SwapTerminalDeploymentLib.getDeployment(
-            vm.envOr("NANA_SWAP_TERMINAL_DEPLOYMENT_PATH", string("node_modules/@bananapus/swap-terminal-v5/deployments/"))
+            vm.envOr(
+                "NANA_SWAP_TERMINAL_DEPLOYMENT_PATH", string("node_modules/@bananapus/swap-terminal-v5/deployments/")
+            )
         );
         // Get the deployment addresses for the 721 hook contracts for this chain.
         buybackHook = BuybackDeploymentLib.getDeployment(
-            vm.envOr("NANA_BUYBACK_HOOK_DEPLOYMENT_PATH", string("node_modules/@bananapus/buyback-hook-v5/deployments/"))
+            vm.envOr(
+                "NANA_BUYBACK_HOOK_DEPLOYMENT_PATH", string("node_modules/@bananapus/buyback-hook-v5/deployments/")
+            )
         );
 
         // We use the same trusted forwarder and permit2 as the core deployment.
         TRUSTED_FORWARDER = core.controller.trustedForwarder();
         PERMIT2 = core.terminal.PERMIT2();
-
-        // Since Juicebox has logic dependent on the timestamp we warp time to create a scenario closer to production.
-        // We force simulations to make the assumption that the `START_TIME` has not occured,
-        // and is not the current time.
-        // Because of the cross-chain allowing components of nana-core, all chains require the same start_time,
-        // for this reason we can't rely on the simulations block.time and we need a shared timestamp across all
-        // simulations.
-        // uint256 _realTimestamp = vm.envUint("START_TIME");
-        uint256 _realTimestamp = 1_739_830_244; // timestamp hardcoded at time of deploy.
-        if (_realTimestamp <= block.timestamp - TIME_UNTIL_START) {
-            revert("Something went wrong while setting the 'START_TIME' environment variable.");
-        }
-
-        vm.warp(_realTimestamp);
 
         // Perform the deployment transactions.
         deploy();
@@ -150,7 +140,7 @@ contract DeployScript is Script, Sphinx {
         terminalConfigurations[0] =
             JBTerminalConfig({terminal: core.terminal, accountingContextsToAccept: accountingContextsToAccept});
         terminalConfigurations[1] = JBTerminalConfig({
-            terminal: IJBTerminal(address(swapTerminal.swap_terminal)),
+            terminal: IJBTerminal(address(swapTerminal.registry)),
             accountingContextsToAccept: new JBAccountingContext[](0)
         });
 
@@ -170,29 +160,13 @@ contract DeployScript is Script, Sphinx {
 
         {
             REVAutoIssuance[] memory issuanceConfs = new REVAutoIssuance[](4);
-            issuanceConfs[0] = REVAutoIssuance({
-                chainId: 1,
-                count: REV_MAINNET_AUTO_ISSUANCE_,
-                beneficiary: OPERATOR
-            });
-            issuanceConfs[1] = REVAutoIssuance({
-                chainId: 8453,
-                count: REV_BASE_AUTO_ISSUANCE_,
-                beneficiary: OPERATOR
-            });
-            issuanceConfs[2] = REVAutoIssuance({
-                chainId: 10,
-                count: REV_OP_AUTO_ISSUANCE_,
-                beneficiary: OPERATOR
-            });
-            issuanceConfs[3] = REVAutoIssuance({
-                chainId: 42161,
-                count: REV_ARB_AUTO_ISSUANCE_,
-                beneficiary: OPERATOR
-            });
+            issuanceConfs[0] = REVAutoIssuance({chainId: 1, count: REV_MAINNET_AUTO_ISSUANCE_, beneficiary: OPERATOR});
+            issuanceConfs[1] = REVAutoIssuance({chainId: 8453, count: REV_BASE_AUTO_ISSUANCE_, beneficiary: OPERATOR});
+            issuanceConfs[2] = REVAutoIssuance({chainId: 10, count: REV_OP_AUTO_ISSUANCE_, beneficiary: OPERATOR});
+            issuanceConfs[3] = REVAutoIssuance({chainId: 42_161, count: REV_ARB_AUTO_ISSUANCE_, beneficiary: OPERATOR});
 
             stageConfigurations[0] = REVStageConfig({
-                startsAtOrAfter: REV_START_TIME, 
+                startsAtOrAfter: REV_START_TIME,
                 autoIssuances: issuanceConfs,
                 splitPercent: 3800, // 38%
                 splits: splits,
@@ -256,15 +230,14 @@ contract DeployScript is Script, Sphinx {
 
         // The project's buyback hook configuration.
         REVBuybackPoolConfig[] memory buybackPoolConfigurations = new REVBuybackPoolConfig[](1);
-        buybackPoolConfigurations[0] = REVBuybackPoolConfig({
-            token: JBConstants.NATIVE_TOKEN,
-            fee: 10_000,
-            twapWindow: 2 days,
-            twapSlippageTolerance: 1000
-        });
+        buybackPoolConfigurations[0] =
+            REVBuybackPoolConfig({token: JBConstants.NATIVE_TOKEN, fee: 10_000, twapWindow: 2 days});
 
-        REVBuybackHookConfig memory buybackHookConfiguration =
-            REVBuybackHookConfig({dataHook: buybackHook.hook, hookToConfigure: buybackHook.hook, poolConfigurations: buybackPoolConfigurations});
+        REVBuybackHookConfig memory buybackHookConfiguration = REVBuybackHookConfig({
+            dataHook: buybackHook.registry,
+            hookToConfigure: buybackHook.hook,
+            poolConfigurations: buybackPoolConfigurations
+        });
 
         // Organize the instructions for how this project will connect to other chains.
         JBTokenMapping[] memory tokenMappings = new JBTokenMapping[](1);

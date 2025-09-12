@@ -32,6 +32,7 @@ import {JBCurrencyAmount} from "@bananapus/core-v5/src/structs/JBCurrencyAmount.
 import {JBFundAccessLimitGroup} from "@bananapus/core-v5/src/structs/JBFundAccessLimitGroup.sol";
 import {JBPermissionsData} from "@bananapus/core-v5/src/structs/JBPermissionsData.sol";
 import {JBPayHookSpecification} from "@bananapus/core-v5/src/structs/JBPayHookSpecification.sol";
+import {JBRuleset} from "@bananapus/core-v5/src/structs/JBRuleset.sol";
 import {JBRulesetConfig} from "@bananapus/core-v5/src/structs/JBRulesetConfig.sol";
 import {JBRulesetMetadata} from "@bananapus/core-v5/src/structs/JBRulesetMetadata.sol";
 import {JBSplit} from "@bananapus/core-v5/src/structs/JBSplit.sol";
@@ -334,13 +335,23 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
     /// @notice A flag indicating whether an address has permission to mint a revnet's tokens on-demand.
     /// @dev Required by the `IJBRulesetDataHook` interface.
     /// @param revnetId The ID of the revnet to check permissions for.
+    /// @param ruleset The ruleset to check the mint permission for.
     /// @param addr The address to check the mint permission of.
     /// @return flag A flag indicating whether the address has permission to mint the revnet's tokens on-demand.
-    function hasMintPermissionFor(uint256 revnetId, address addr) external view override returns (bool) {
+    function hasMintPermissionFor(
+        uint256 revnetId,
+        JBRuleset calldata ruleset,
+        address addr
+    )
+        external
+        view
+        override
+        returns (bool)
+    {
         IJBRulesetDataHook buybackHook = buybackHookOf[revnetId];
         // The buyback hook, loans contract, and suckers are allowed to mint the revnet's tokens.
-        return addr == address(buybackHook) || buybackHook.hasMintPermissionFor(revnetId, addr) || addr == loansOf[revnetId]
-            || _isSuckerOf({revnetId: revnetId, addr: addr});
+        return addr == loansOf[revnetId] || addr == address(buybackHook)
+            || buybackHook.hasMintPermissionFor(revnetId, ruleset, addr) || _isSuckerOf({revnetId: revnetId, addr: addr});
     }
 
     /// @dev Make sure this contract can only receive project NFTs from `JBProjects`.
@@ -514,6 +525,12 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
         return 0;
     }
 
+    /// @notice Returns the next project ID.
+    /// @return nextProjectId The next project ID.
+    function _nextProjectId() internal view returns (uint256) {
+        return PROJECTS.count() + 1;
+    }
+
     /// @notice Returns the permissions that the split operator should be granted for a revnet.
     /// @param revnetId The ID of the revnet to get split operator permissions for.
     /// @return allOperatorPermissions The permissions that the split operator should be granted for the revnet,
@@ -611,8 +628,11 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
     /// @param stageId The ID of the stage auto-mint tokens are available from.
     /// @param beneficiary The address to auto-mint tokens to.
     function autoIssueFor(uint256 revnetId, uint256 stageId, address beneficiary) external override {
+        // Get a reference to the ruleset for the stage.
+        (JBRuleset memory ruleset,) = CONTROLLER.getRulesetOf(revnetId, stageId);
+
         // Make sure the stage has started.
-        if (CONTROLLER.RULESETS().getRulesetOf(revnetId, stageId).start > block.timestamp) {
+        if (ruleset.start > block.timestamp) {
             revert REVDeployer_StageNotStarted(stageId);
         }
 
@@ -669,7 +689,7 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
 
         // If the caller is deploying a new revnet, calculate its ID
         // (which will be 1 greater than the current count).
-        if (shouldDeployNewRevnet) revnetId = PROJECTS.count() + 1;
+        if (shouldDeployNewRevnet) revnetId = _nextProjectId();
 
         // Normalize and encode the configurations.
         (JBRulesetConfig[] memory rulesetConfigurations, bytes32 encodedConfigurationHash) = _makeRulesetConfigurations({
@@ -759,7 +779,7 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
 
         // If the caller is deploying a new revnet, calculate its ID
         // (which will be 1 greater than the current count).
-        if (shouldDeployNewRevnet) revnetId = PROJECTS.count() + 1;
+        if (shouldDeployNewRevnet) revnetId = _nextProjectId();
 
         // Deploy the revnet with the specified tiered ERC-721 hook and croptop posting criteria.
         hook = _deploy721RevnetFor({
@@ -1017,7 +1037,6 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
                         projectId: revnetId,
                         fee: poolConfig.fee,
                         twapWindow: poolConfig.twapWindow,
-                        twapSlippageTolerance: poolConfig.twapSlippageTolerance,
                         terminalToken: poolConfig.token
                     });
                 }

@@ -1,5 +1,5 @@
 # IREVLoans
-[Git Source](https://github.com/rev-net/revnet-core/blob/4ce5b6e07a0e5ba0e8d652f2e9efcc8c2d12b8d1/src/interfaces/IREVLoans.sol)
+[Git Source](https://github.com/rev-net/revnet-core-v5/blob/364afaae78a8f60af2b98252dc96af1c2e4760d3/src/interfaces/IREVLoans.sol)
 
 
 ## Functions
@@ -201,7 +201,7 @@ function liquidateExpiredLoansFrom(uint256 revnetId, uint256 startingLoanId, uin
 function repayLoan(
     uint256 loanId,
     uint256 maxRepayBorrowAmount,
-    uint256 newCollateral,
+    uint256 collateralCountToReturn,
     address payable beneficiary,
     JBSingleAllowance calldata allowance
 )

@@ -1,5 +1,5 @@
 # REVDeployer
-[Git Source](https://github.com/rev-net/revnet-core/blob/4ce5b6e07a0e5ba0e8d652f2e9efcc8c2d12b8d1/src/REVDeployer.sol)
+[Git Source](https://github.com/rev-net/revnet-core-v5/blob/364afaae78a8f60af2b98252dc96af1c2e4760d3/src/REVDeployer.sol)
 
 **Inherits:**
 ERC2771Context, [IREVDeployer](/src/interfaces/IREVDeployer.sol/interface.IREVDeployer.md), IJBRulesetDataHook, IJBCashOutHook, IERC721Receiver
@@ -289,13 +289,22 @@ A flag indicating whether an address has permission to mint a revnet's tokens on
 
 
 ```solidity
-function hasMintPermissionFor(uint256 revnetId, address addr) external view override returns (bool);
+function hasMintPermissionFor(
+    uint256 revnetId,
+    JBRuleset calldata ruleset,
+    address addr
+)
+    external
+    view
+    override
+    returns (bool);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`revnetId`|`uint256`|The ID of the revnet to check permissions for.|
+|`ruleset`|`JBRuleset`|The ruleset to check the mint permission for.|
 |`addr`|`address`|The address to check the mint permission of.|
 
 **Returns**
@@ -477,6 +486,21 @@ function _matchingCurrencyOf(
 |Name|Type|Description|
 |----|----|-----------|
 |`<none>`|`uint32`|currency The currency of the loan source.|
+
+
+### _nextProjectId
+
+Returns the next project ID.
+
+
+```solidity
+function _nextProjectId() internal view returns (uint256);
+```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|nextProjectId The next project ID.|
 
 
 ### _splitOperatorPermissionIndexesOf
@@ -673,33 +697,6 @@ function _beforeTransferTo(address to, address token, uint256 amount) internal r
 |`<none>`|`uint256`|payValue The value to attach to the transaction being sent.|
 
 
-### _configurePostingCriteriaFor
-
-Configure croptop posting.
-
-
-```solidity
-function _configurePostingCriteriaFor(
-    address hook,
-    REVCroptopAllowedPost[] calldata allowedPosts
-)
-    internal
-    returns (bool);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`hook`|`address`|The hook that will be posted to.|
-|`allowedPosts`|`REVCroptopAllowedPost[]`|The type of posts that the revent should allow.|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`bool`|flag A flag indicating if posts were configured. Returns false if there were no posts to set up.|
-
-
 ### _deploy721RevnetFor
 
 Deploy a revnet which sells tiered ERC-721s and (optionally) allows croptop posts to its ERC-721 tiers.
@@ -824,23 +821,6 @@ function _makeRulesetConfigurations(
 |`encodedConfigurationHash`|`bytes32`|A hash that represents the revnet's configuration. Used for sucker deployment salts.|
 
 
-### _mintTokensOf
-
-Mints a revnet's tokens.
-
-
-```solidity
-function _mintTokensOf(uint256 revnetId, uint256 tokenCount, address beneficiary) internal;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`revnetId`|`uint256`|The ID of the revnet to mint tokens for.|
-|`tokenCount`|`uint256`|The number of tokens to mint.|
-|`beneficiary`|`address`|The address to send the tokens to.|
-
-
 ### _setCashOutDelayIfNeeded
 
 Sets the cash out delay if the revnet's stages are already in progress.
@@ -950,6 +930,12 @@ error REVDeployer_CashOutsCantBeTurnedOffCompletely(uint256 cashOutTaxRate, uint
 error REVDeployer_MustHaveSplits();
 ```
 
+### REVDeployer_NothingToAutoIssue
+
+```solidity
+error REVDeployer_NothingToAutoIssue();
+```
+
 ### REVDeployer_RulesetDoesNotAllowDeployingSuckers
 
 ```solidity
@@ -959,7 +945,7 @@ error REVDeployer_RulesetDoesNotAllowDeployingSuckers();
 ### REVDeployer_StageNotStarted
 
 ```solidity
-error REVDeployer_StageNotStarted(uint256 stageStartTime, uint256 blockTimestamp);
+error REVDeployer_StageNotStarted(uint256 stageId);
 ```
 
 ### REVDeployer_StagesRequired

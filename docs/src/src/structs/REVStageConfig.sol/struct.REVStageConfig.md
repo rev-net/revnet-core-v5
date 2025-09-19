@@ -1,5 +1,5 @@
 # REVStageConfig
-[Git Source](https://github.com/rev-net/revnet-core/blob/4ce5b6e07a0e5ba0e8d652f2e9efcc8c2d12b8d1/src/structs/REVStageConfig.sol)
+[Git Source](https://github.com/rev-net/revnet-core-v5/blob/364afaae78a8f60af2b98252dc96af1c2e4760d3/src/structs/REVStageConfig.sol)
 
 **Notes:**
 - member: startsAtOrAfter The timestamp to start a stage at the given rate at or after.

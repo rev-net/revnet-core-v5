@@ -1,5 +1,5 @@
 # REVLoans
-[Git Source](https://github.com/rev-net/revnet-core/blob/4ce5b6e07a0e5ba0e8d652f2e9efcc8c2d12b8d1/src/REVLoans.sol)
+[Git Source](https://github.com/rev-net/revnet-core-v5/blob/364afaae78a8f60af2b98252dc96af1c2e4760d3/src/REVLoans.sol)
 
 **Inherits:**
 ERC721, ERC2771Context, Ownable, [IREVLoans](/src/interfaces/IREVLoans.sol/interface.IREVLoans.md)
@@ -51,7 +51,7 @@ uint256 public constant override MAX_PREPAID_FEE_PERCENT = 500;
 
 
 ```solidity
-uint256 public constant override REV_PREPAID_FEE_PERCENT = 5;
+uint256 public constant override REV_PREPAID_FEE_PERCENT = 10;
 ```
 
 
@@ -457,13 +457,7 @@ Determines the source fee amount for a loan being paid off a certain amount.
 
 
 ```solidity
-function _determineSourceFeeAmount(
-    REVLoan memory loan,
-    uint256 amount
-)
-    internal
-    view
-    returns (uint256 sourceFeeAmount);
+function _determineSourceFeeAmount(REVLoan memory loan, uint256 amount) internal view returns (uint256);
 ```
 **Parameters**
 
@@ -476,7 +470,7 @@ function _determineSourceFeeAmount(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`sourceFeeAmount`|`uint256`|The source fee amount for the loan.|
+|`<none>`|`uint256`|The source fee amount for the loan.|
 
 
 ### _generateLoanId
@@ -689,7 +683,7 @@ function repayLoan(
 |----|----|-----------|
 |`loanId`|`uint256`|The ID of the loan being adjusted.|
 |`maxRepayBorrowAmount`|`uint256`|The maximum amount being paid off, denominated in the token of the source's accounting context.|
-|`collateralCountToReturn`|`uint256`|The amount of collateral to return being returned from the loan.|
+|`collateralCountToReturn`|`uint256`|The amount of collateral being returned from the loan.|
 |`beneficiary`|`address payable`|The address receiving the returned collateral and any tokens resulting from paying fees.|
 |`allowance`|`JBSingleAllowance`|An allowance to faciliate permit2 interactions.|
 
@@ -743,7 +737,6 @@ function _addTo(
     uint256 revnetId,
     uint256 addedBorrowAmount,
     uint256 sourceFeeAmount,
-    IJBTerminal feeTerminal,
     address payable beneficiary
 )
     internal;
@@ -756,7 +749,6 @@ function _addTo(
 |`revnetId`|`uint256`|The ID of the revnet the loan is being added in.|
 |`addedBorrowAmount`|`uint256`|The amount being added to the loan, denominated in the token of the source's accounting context.|
 |`sourceFeeAmount`|`uint256`|The amount of the fee being taken from the revnet acting as the source of the loan.|
-|`feeTerminal`|`IJBTerminal`|The terminal that the fee will be paid to.|
 |`beneficiary`|`address payable`|The address receiving the returned collateral and any tokens resulting from paying fees.|
 
 

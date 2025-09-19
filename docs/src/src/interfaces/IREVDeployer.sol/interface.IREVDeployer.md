@@ -1,5 +1,5 @@
 # IREVDeployer
-[Git Source](https://github.com/rev-net/revnet-core/blob/4ce5b6e07a0e5ba0e8d652f2e9efcc8c2d12b8d1/src/interfaces/IREVDeployer.sol)
+[Git Source](https://github.com/rev-net/revnet-core-v5/blob/364afaae78a8f60af2b98252dc96af1c2e4760d3/src/interfaces/IREVDeployer.sol)
 
 
 ## Functions
@@ -192,7 +192,6 @@ event ReplaceSplitOperator(uint256 indexed revnetId, address indexed newSplitOpe
 ```solidity
 event DeploySuckers(
     uint256 indexed revnetId,
-    bytes32 indexed salt,
     bytes32 encodedConfigurationHash,
     REVSuckerDeploymentConfig suckerDeploymentConfiguration,
     address caller

@@ -6,21 +6,19 @@ import /* {*} from */ "@bananapus/core-v5/test/helpers/TestBaseWorkflow.sol";
 import /* {*} from "@bananapus/721-hook-v5/src/JB721TiersHookDeployer.sol";
     import /* {*} from */ "./../src/REVDeployer.sol";
 import "@croptop/core-v5/src/CTPublisher.sol";
+import {MockBuybackDataHook} from "./mock/MockBuybackDataHook.sol";
 
 import "@bananapus/core-v5/script/helpers/CoreDeploymentLib.sol";
 import "@bananapus/721-hook-v5/script/helpers/Hook721DeploymentLib.sol";
 import "@bananapus/suckers-v5/script/helpers/SuckerDeploymentLib.sol";
 import "@croptop/core-v5/script/helpers/CroptopDeploymentLib.sol";
 import "@bananapus/swap-terminal-v5/script/helpers/SwapTerminalDeploymentLib.sol";
-import "@bananapus/buyback-hook-v5/script/helpers/BuybackDeploymentLib.sol";
 
 import {JBConstants} from "@bananapus/core-v5/src/libraries/JBConstants.sol";
 import {JBAccountingContext} from "@bananapus/core-v5/src/structs/JBAccountingContext.sol";
 import {REVLoans} from "../src/REVLoans.sol";
 import {REVStageConfig, REVAutoIssuance} from "../src/structs/REVStageConfig.sol";
-import {REVLoanSource} from "../src/structs/REVLoanSource.sol";
 import {REVDescription} from "../src/structs/REVDescription.sol";
-import {REVBuybackPoolConfig} from "../src/structs/REVBuybackPoolConfig.sol";
 import {IREVLoans} from "./../src/interfaces/IREVLoans.sol";
 import {JBSuckerDeployerConfig} from "@bananapus/suckers-v5/src/structs/JBSuckerDeployerConfig.sol";
 import {JBSuckerRegistry} from "@bananapus/suckers-v5/src/JBSuckerRegistry.sol";
@@ -37,7 +35,6 @@ import {IJBAddressRegistry} from "@bananapus/address-registry-v5/src/interfaces/
 struct FeeProjectConfig {
     REVConfig configuration;
     JBTerminalConfig[] terminalConfigurations;
-    REVBuybackHookConfig buybackHookConfiguration;
     REVSuckerDeploymentConfig suckerDeploymentConfiguration;
 }
 
@@ -62,6 +59,7 @@ contract REVnet_Integrations is TestBaseWorkflow, JBTest {
     bytes ENCODED_CONFIG;
 
     CTPublisher PUBLISHER;
+    MockBuybackDataHook MOCK_BUYBACK;
 
     uint256 FEE_PROJECT_ID;
     uint256 REVNET_ID;
@@ -150,40 +148,24 @@ contract REVnet_Integrations is TestBaseWorkflow, JBTest {
             extraMetadata: (1 << 2) // Enable adding new suckers.
         });
 
-        REVLoanSource[] memory _loanSources = new REVLoanSource[](0);
-
         // The project's revnet configuration
         REVConfig memory revnetConfiguration = REVConfig({
             description: REVDescription(name, symbol, projectUri, ERC20_SALT),
             baseCurrency: uint32(uint160(JBConstants.NATIVE_TOKEN)),
             splitOperator: multisig(),
-            stageConfigurations: stageConfigurations,
-            loanSources: _loanSources,
-            loans: address(0)
+            stageConfigurations: stageConfigurations
         });
 
         ENCODED_CONFIG = abi.encode(
             revnetConfiguration.baseCurrency,
-            revnetConfiguration.loans,
             revnetConfiguration.description.name,
             revnetConfiguration.description.ticker,
             revnetConfiguration.description.salt
         );
 
-        // The project's buyback hook configuration.
-        REVBuybackPoolConfig[] memory buybackPoolConfigurations = new REVBuybackPoolConfig[](1);
-        buybackPoolConfigurations[0] =
-            REVBuybackPoolConfig({token: JBConstants.NATIVE_TOKEN, fee: 10_000, twapWindow: 2 days});
-        REVBuybackHookConfig memory buybackHookConfiguration = REVBuybackHookConfig({
-            dataHook: IJBRulesetDataHook(address(0)),
-            hookToConfigure: IJBBuybackHook(address(0)),
-            poolConfigurations: buybackPoolConfigurations
-        });
-
         return FeeProjectConfig({
             configuration: revnetConfiguration,
             terminalConfigurations: terminalConfigurations,
-            buybackHookConfiguration: buybackHookConfiguration,
             suckerDeploymentConfiguration: REVSuckerDeploymentConfig({
                 deployerConfigurations: new JBSuckerDeployerConfig[](0),
                 salt: keccak256(abi.encodePacked("REV"))
@@ -207,9 +189,10 @@ contract REVnet_Integrations is TestBaseWorkflow, JBTest {
         HOOK_DEPLOYER = new JB721TiersHookDeployer(EXAMPLE_HOOK, HOOK_STORE, ADDRESS_REGISTRY, multisig());
 
         PUBLISHER = new CTPublisher(jbDirectory(), jbPermissions(), FEE_PROJECT_ID, multisig());
+        MOCK_BUYBACK = new MockBuybackDataHook();
 
         REV_DEPLOYER = new REVDeployer{salt: REV_DEPLOYER_SALT}(
-            jbController(), SUCKER_REGISTRY, FEE_PROJECT_ID, HOOK_DEPLOYER, PUBLISHER, TRUSTED_FORWARDER
+            jbController(), SUCKER_REGISTRY, FEE_PROJECT_ID, HOOK_DEPLOYER, PUBLISHER, IJBRulesetDataHook(address(MOCK_BUYBACK)), makeAddr("loans"), TRUSTED_FORWARDER
         );
 
         // Deploy the ARB sucker deployer.
@@ -244,7 +227,6 @@ contract REVnet_Integrations is TestBaseWorkflow, JBTest {
             revnetId: FEE_PROJECT_ID, // Zero to deploy a new revnet
             configuration: feeProjectConfig.configuration,
             terminalConfigurations: feeProjectConfig.terminalConfigurations,
-            buybackHookConfiguration: feeProjectConfig.buybackHookConfiguration,
             suckerDeploymentConfiguration: feeProjectConfig.suckerDeploymentConfiguration
         });
     }
@@ -374,7 +356,6 @@ contract REVnet_Integrations is TestBaseWorkflow, JBTest {
             revnetId: 0, // Zero to deploy a new revnet
             configuration: projectConfig.configuration,
             terminalConfigurations: projectConfig.terminalConfigurations,
-            buybackHookConfiguration: projectConfig.buybackHookConfiguration,
             suckerDeploymentConfiguration: projectConfig.suckerDeploymentConfiguration
         });
 
@@ -393,6 +374,30 @@ contract REVnet_Integrations is TestBaseWorkflow, JBTest {
         }
     }
 
+    function test_loans_has_use_allowance_permission() public view {
+        // The loans contract should have USE_ALLOWANCE permission for any revnet via the wildcard grant.
+        bool hasPermission = jbPermissions().hasPermission({
+            operator: address(REV_DEPLOYER.LOANS()),
+            account: address(REV_DEPLOYER),
+            projectId: REVNET_ID,
+            permissionId: JBPermissionIds.USE_ALLOWANCE,
+            includeRoot: false,
+            includeWildcardProjectId: true
+        });
+        assertTrue(hasPermission, "LOANS should have USE_ALLOWANCE for deployed revnet");
+
+        // Also holds for a revnet that doesn't exist yet — the wildcard covers all projects.
+        bool hasPermissionForFuture = jbPermissions().hasPermission({
+            operator: address(REV_DEPLOYER.LOANS()),
+            account: address(REV_DEPLOYER),
+            projectId: 999,
+            permissionId: JBPermissionIds.USE_ALLOWANCE,
+            includeRoot: false,
+            includeWildcardProjectId: true
+        });
+        assertTrue(hasPermissionForFuture, "LOANS should have USE_ALLOWANCE for any project via wildcard");
+    }
+
     function test_deployer_not_owner() public {
         // Build the config.
         FeeProjectConfig memory feeProjectConfig = getFeeProjectConfig();
@@ -405,7 +410,6 @@ contract REVnet_Integrations is TestBaseWorkflow, JBTest {
             revnetId: FEE_PROJECT_ID, // Zero to deploy a new revnet
             configuration: feeProjectConfig.configuration,
             terminalConfigurations: feeProjectConfig.terminalConfigurations,
-            buybackHookConfiguration: feeProjectConfig.buybackHookConfiguration,
             suckerDeploymentConfiguration: feeProjectConfig.suckerDeploymentConfiguration
         });
     }

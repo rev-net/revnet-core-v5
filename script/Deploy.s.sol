@@ -20,15 +20,13 @@ import {JBTokenMapping} from "@bananapus/suckers-v5/src/structs/JBTokenMapping.s
 import {IPermit2} from "@uniswap/permit2/src/interfaces/IPermit2.sol";
 import {IJBSplitHook} from "@bananapus/core-v5/src/interfaces/IJBSplitHook.sol";
 import {IJBTerminal} from "@bananapus/core-v5/src/interfaces/IJBTerminal.sol";
+import {IJBRulesetDataHook} from "@bananapus/core-v5/src/interfaces/IJBRulesetDataHook.sol";
 import {JBSplit} from "@bananapus/core-v5/src/structs/JBSplit.sol";
 
 import {REVDeployer} from "./../src/REVDeployer.sol";
 import {REVAutoIssuance} from "../src/structs/REVAutoIssuance.sol";
-import {REVBuybackHookConfig} from "../src/structs/REVBuybackHookConfig.sol";
 import {REVConfig} from "../src/structs/REVConfig.sol";
 import {REVDescription} from "../src/structs/REVDescription.sol";
-import {REVLoanSource} from "../src/structs/REVLoanSource.sol";
-import {REVBuybackPoolConfig} from "../src/structs/REVBuybackPoolConfig.sol";
 import {REVStageConfig} from "../src/structs/REVStageConfig.sol";
 import {REVSuckerDeploymentConfig} from "../src/structs/REVSuckerDeploymentConfig.sol";
 import {REVLoans, IREVLoans} from "./../src/REVLoans.sol";
@@ -36,7 +34,6 @@ import {REVLoans, IREVLoans} from "./../src/REVLoans.sol";
 struct FeeProjectConfig {
     REVConfig configuration;
     JBTerminalConfig[] terminalConfigurations;
-    REVBuybackHookConfig buybackHookConfiguration;
     REVSuckerDeploymentConfig suckerDeploymentConfiguration;
 }
 
@@ -62,10 +59,10 @@ contract DeployScript is Script, Sphinx {
     uint32 ETH_CURRENCY = JBCurrencyIds.ETH;
     uint8 DECIMALS = 18;
     uint256 DECIMAL_MULTIPLIER = 10 ** DECIMALS;
-    bytes32 ERC20_SALT = "_REV_ERC20_SALT__";
-    bytes32 SUCKER_SALT = "_REV_SUCKER_SALT__";
-    bytes32 DEPLOYER_SALT = "_REV_DEPLOYER_SALT__";
-    bytes32 REVLOANS_SALT = "_REV_LOANS_SALT__";
+    bytes32 ERC20_SALT = "_REV_ERC20_SALT_V6_";
+    bytes32 SUCKER_SALT = "_REV_SUCKER_SALT_V6_";
+    bytes32 DEPLOYER_SALT = "_REV_DEPLOYER_SALT_V6_";
+    bytes32 REVLOANS_SALT = "_REV_LOANS_SALT_V6_";
     address LOANS_OWNER;
     address OPERATOR;
     address TRUSTED_FORWARDER;
@@ -127,7 +124,7 @@ contract DeployScript is Script, Sphinx {
         deploy();
     }
 
-    function getFeeProjectConfig(IREVLoans revloans) internal view returns (FeeProjectConfig memory) {
+    function getFeeProjectConfig() internal view returns (FeeProjectConfig memory) {
         // The tokens that the project accepts and stores.
         JBAccountingContext[] memory accountingContextsToAccept = new JBAccountingContext[](1);
 
@@ -211,32 +208,12 @@ contract DeployScript is Script, Sphinx {
             extraMetadata: 4 // Allow adding suckers.
         });
 
-        REVConfig memory revnetConfiguration;
-        {
-            // Thr projects loan configuration.
-            REVLoanSource[] memory loanSources = new REVLoanSource[](1);
-            loanSources[0] = REVLoanSource({token: JBConstants.NATIVE_TOKEN, terminal: core.terminal});
-
-            // The project's revnet configuration
-            revnetConfiguration = REVConfig({
-                description: REVDescription(NAME, SYMBOL, PROJECT_URI, ERC20_SALT),
-                baseCurrency: ETH_CURRENCY,
-                splitOperator: OPERATOR,
-                stageConfigurations: stageConfigurations,
-                loanSources: loanSources,
-                loans: address(revloans)
-            });
-        }
-
-        // The project's buyback hook configuration.
-        REVBuybackPoolConfig[] memory buybackPoolConfigurations = new REVBuybackPoolConfig[](1);
-        buybackPoolConfigurations[0] =
-            REVBuybackPoolConfig({token: JBConstants.NATIVE_TOKEN, fee: 10_000, twapWindow: 2 days});
-
-        REVBuybackHookConfig memory buybackHookConfiguration = REVBuybackHookConfig({
-            dataHook: buybackHook.registry,
-            hookToConfigure: buybackHook.hook,
-            poolConfigurations: buybackPoolConfigurations
+        // The project's revnet configuration
+        REVConfig memory revnetConfiguration = REVConfig({
+            description: REVDescription(NAME, SYMBOL, PROJECT_URI, ERC20_SALT),
+            baseCurrency: ETH_CURRENCY,
+            splitOperator: OPERATOR,
+            stageConfigurations: stageConfigurations
         });
 
         // Organize the instructions for how this project will connect to other chains.
@@ -285,7 +262,6 @@ contract DeployScript is Script, Sphinx {
         return FeeProjectConfig({
             configuration: revnetConfiguration,
             terminalConfigurations: terminalConfigurations,
-            buybackHookConfiguration: buybackHookConfiguration,
             suckerDeploymentConfiguration: suckerDeploymentConfiguration
         });
     }
@@ -294,58 +270,56 @@ contract DeployScript is Script, Sphinx {
         // TODO figure out how to reference project ID if the contracts are already deployed.
         uint256 FEE_PROJECT_ID = core.projects.createFor(safeAddress());
 
-        REVDeployer _basicDeployer;
-        {
-            // Check if the contracts are already deployed or if there are any changes.
-            (address _deployer, bool _revDeployerIsDeployed) = _isDeployed(
-                DEPLOYER_SALT,
-                type(REVDeployer).creationCode,
-                abi.encode(core.controller, suckers.registry, FEE_PROJECT_ID, hook.hook_deployer, croptop.publisher)
-            );
+        // Deploy REVLoans first — it only depends on the controller.
+        (address _revloansAddr, bool _revloansIsDeployed) = _isDeployed(
+            REVLOANS_SALT,
+            type(REVLoans).creationCode,
+            abi.encode(core.controller, core.projects, FEE_PROJECT_ID, LOANS_OWNER, PERMIT2, TRUSTED_FORWARDER)
+        );
+        REVLoans revloans = _revloansIsDeployed
+            ? REVLoans(payable(_revloansAddr))
+            : new REVLoans{salt: REVLOANS_SALT}({
+                controller: core.controller,
+                projects: core.projects,
+                revId: FEE_PROJECT_ID,
+                owner: LOANS_OWNER,
+                permit2: PERMIT2,
+                trustedForwarder: TRUSTED_FORWARDER
+            });
 
-            _basicDeployer = !_revDeployerIsDeployed
-                ? new REVDeployer{salt: DEPLOYER_SALT}(
-                    core.controller,
-                    suckers.registry,
-                    FEE_PROJECT_ID,
-                    hook.hook_deployer,
-                    croptop.publisher,
-                    TRUSTED_FORWARDER
-                )
-                : REVDeployer(payable(_deployer));
-        }
-        // Deploy revloans if its not deployed yet.
-        REVLoans revloans;
-        {
-            (address _revloans, bool _revloansIsDeployed) = _isDeployed(
-                REVLOANS_SALT,
-                type(REVLoans).creationCode,
-                abi.encode(_basicDeployer, FEE_PROJECT_ID, PERMIT2, TRUSTED_FORWARDER)
+        // Deploy REVDeployer with the REVLoans and buyback hook addresses.
+        (address _deployerAddr, bool _deployerIsDeployed) = _isDeployed(
+            DEPLOYER_SALT,
+            type(REVDeployer).creationCode,
+            abi.encode(
+                core.controller, suckers.registry, FEE_PROJECT_ID, hook.hook_deployer, croptop.publisher,
+                IJBRulesetDataHook(address(buybackHook.registry)), address(revloans), TRUSTED_FORWARDER
+            )
+        );
+        REVDeployer _basicDeployer = _deployerIsDeployed
+            ? REVDeployer(payable(_deployerAddr))
+            : new REVDeployer{salt: DEPLOYER_SALT}(
+                core.controller,
+                suckers.registry,
+                FEE_PROJECT_ID,
+                hook.hook_deployer,
+                croptop.publisher,
+                IJBRulesetDataHook(address(buybackHook.registry)),
+                address(revloans),
+                TRUSTED_FORWARDER
             );
-
-            revloans = !_revloansIsDeployed
-                ? new REVLoans{salt: REVLOANS_SALT}({
-                    revnets: _basicDeployer,
-                    revId: FEE_PROJECT_ID,
-                    owner: LOANS_OWNER,
-                    permit2: PERMIT2,
-                    trustedForwarder: TRUSTED_FORWARDER
-                })
-                : REVLoans(payable(_revloans));
-        }
 
         // Approve the basic deployer to configure the project.
         core.projects.approve(address(_basicDeployer), FEE_PROJECT_ID);
 
         // Build the config.
-        FeeProjectConfig memory feeProjectConfig = getFeeProjectConfig(revloans);
+        FeeProjectConfig memory feeProjectConfig = getFeeProjectConfig();
 
         // Configure the project.
         _basicDeployer.deployFor({
             revnetId: FEE_PROJECT_ID,
             configuration: feeProjectConfig.configuration,
             terminalConfigurations: feeProjectConfig.terminalConfigurations,
-            buybackHookConfiguration: feeProjectConfig.buybackHookConfiguration,
             suckerDeploymentConfiguration: feeProjectConfig.suckerDeploymentConfiguration
         });
     }

@@ -887,6 +887,7 @@ contract REVDeployer is ERC2771Context, IREVDeployer, IJBRulesetDataHook, IJBCas
                     minimumPrice: post.minimumPrice,
                     minimumTotalSupply: post.minimumTotalSupply,
                     maximumTotalSupply: post.maximumTotalSupply,
+                    maximumSplitPercent: post.maximumSplitPercent,
                     allowedAddresses: post.allowedAddresses
                 });
             }
